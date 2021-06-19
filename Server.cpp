@@ -12,25 +12,71 @@
 
 #include "Server.hpp"
 
-Server::Server(char *config) {
-	struct sockaddr *base;
-	int opt;
-	int sock;
-	struct sockaddr_in	inet;
+Server::Server(char *config): configParser(config) {
 	fds = new pollfd[1];
 	fds[0].fd = -2;
 	fds_size = 0;
+}
+
+Server::~Server() {
+	delete []fds;
+}
+
+void Server::start() {
+	int					event;
+	std::string			response;
+	const char		 	*request;
+	ResponseMaker		responseMaker;
 
 	std::cout << "\e[1;97mRunning server...\e[0m" << std::endl;
-	Parser parser(config);
-	Listen listen = parser.getListen();
+	startListen(configParser.getListen());
 
+	std::cout << "\e[1;32m Polling   -> \e[0m" << std::endl;
+	while(1) {
+		event = poll(fds, nfds + 1, -1); // поменять 3 аргумент на 0, для неблокируемого опроса
+		if (event == -1)
+			throw std::strerror(errno);
+		else if (event == 0)
+			throw "poll timeout"; // поменять на continue для неблокируемого опроса.
+		for(int i = 0; (fds[i].fd != -2); i++)
+		{
+			if (fds[i].revents == POLLRDNORM)
+				acceptConnection(fds[i], i);
+			else if (fds[i].revents == (POLLIN | POLLOUT))
+			{
+				request = getRequest(fds[i].fd);
+				response = responseMaker.makeResponse(request);
+				delete request;
+				if (send(fds[i].fd, response.c_str(), response.length(), 0) < 0)
+					throw "over";
+			}
+			else if (fds[i].revents >= POLLHUP && fds[i].revents <= 17)
+				deleteSocket(fds[i]);
+			else if (fds[i].revents == POLLERR)
+				throw "POLLERR detected!";
+			else if (fds[i].revents == POLLNVAL)
+				throw "Файловый дескриптор не открыт";
+			else
+			{
+				if (fds[i].revents != 0 && fds[i].revents != 4)
+					std::cout << fds[i].revents << std::endl;
+			}
+		}
+	}
+}
+
+void Server::startListen(Listen listen) {
+	int					opt;
+	int					sock;
+	struct sockaddr		*base;
+	struct sockaddr_in	inet;
+
+	opt = 1;
 	std::cout << "\e[1;32m Listening -> \e[0m";
 	for (Listen::iterator it = listen.begin(); it != listen.end(); it++) {
 		sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP); // Семейств сокета, тип потокового взаимодействия(тип передачи данных), протокол.
-		if (sock == -1) {
+		if (sock == -1)
 			throw std::strerror(errno);
-		}
 		fcntl(sock, F_SETFL, O_NONBLOCK); // от блокирования сокета.
 		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)); // от залипания tcp-порта.
 
@@ -39,88 +85,62 @@ Server::Server(char *config) {
 		inet.sin_addr.s_addr = inet_addr(it->ip.c_str()); // переводит char* в какое-то число, необходимо для bind();
 
 		base = reinterpret_cast<struct sockaddr *>(&inet);
-		if (bind(sock, base, sizeof(inet)) == -1) {
+		if (bind(sock, base, sizeof(inet)) == -1)
 			throw std::strerror(errno);
-		}
-		if (::listen(sock, 5) == -1) {
+		if (::listen(sock, 5) == -1)
 			throw std::strerror(errno);
-		}
-
-		addSocket(sock, POLLPRI);
+		addSocket(sock, POLLRDNORM);
 	}
 	std::cout << "\e[1;32m[OK]\e[0m" << std::endl;
 }
 
-Server::~Server() {
-	delete []fds;
+const char 	*Server::getRequest(int fd) {
+	char				buffer[BUFFER_SIZE];
+	int 				size;
+	char 				*data;
+	char 				*tmp;
+
+	data = NULL;
+	while(1) {
+		size = recv(fd, &buffer, BUFFER_SIZE, 0);
+		if (size > 0) {
+			buffer[size] = '\0';
+			tmp = data;
+			data = strjoin(data, buffer);
+			delete tmp;
+		}
+		else
+			break;
+	}
+	return (data);
 }
 
-void Server::start() {
-	int event;
-	struct sockaddr_in base;
-	socklen_t len;
-	int new_client;
-	std::string rec;
-	char buffer[BUFFER_SIZE];
-	ssize_t check;
+void Server::acceptConnection(pollfd lsocket, int i) {
+	int					new_client;
+	socklen_t			len;
+	struct sockaddr		*base;
+	struct sockaddr_in	inet;
+//	std::pair<std::map<int, in_addr_t>::iterator, bool> ret;
 
-	std::cout << "\e[1;32m Polling   -> \e[0m";
-	while(1) {
-		event = poll(fds, nfds + 1, -1);
-		if (event == -1)
-			throw std::strerror(errno);
-		else if (event == 0)
-			throw "poll timeout"; // поменять на continue для неблокируемого опроса.
-		for(int i = 0; event != 0; i++)
-		{
-			if (fds[i].revents == POLLPRI)
-			{
-				fds[i].revents = 0;
-				new_client = accept(fds[i].fd, NULL, NULL);
-				if (new_client == -1)
-					throw std::strerror(errno);
-				addSocket(new_client, POLLRDBAND);
+	lsocket.revents = 0;
+	base = reinterpret_cast<struct sockaddr *>(&inet);
+	len = sizeof(inet);
 
-			}
-			else if (fds[i].revents == POLLRDBAND)
-			{
-				fds[i].revents = 0;
-				if (recv(fds[i].fd, &buffer, BUFFER_SIZE, 0) == -1)
-					throw "recv has broken";
-				if (i % 2 == 0)
-					rec = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 20\n\nMessage from server!";
-				else
-					rec = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 20\n\nKicking from server!";
-				send(new_client, rec.c_str(), rec.length(), 0);
-			}
-			else if (fds[i].revents == POLLHUP)
-			{
-				close(fds[i].fd);
-				fds[i].fd = -1;
-				fds[i].revents = 0;
-			}
-			else if (fds[i].revents == POLLERR)
-			{
-				throw "POLLERR detected!";
-			}
-			else if (fds[i].revents == POLLNVAL)
-			{
-				throw "Файловый дескриптор не открыт";
-			}
-			event--;
-		}
-		std::cout << "\e[1;32m[OK]\e[0m" << std::endl;
-	}
-//	if (check == -1)
-//		throw "какая-то ошибка от recv";
-//	else if (check == 0)
-//		throw "Клиент сбросил соединение";
-//	rec[check] = '\0';
-//	std::cout << buffer;
+	new_client = accept(lsocket.fd, base, &len);
+	if (new_client == -1)
+		throw std::strerror(errno);
+	if (fcntl(new_client, F_SETFL, O_NONBLOCK) < 0)
+		throw std::strerror(errno);
 
-//	rec = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 20\n\nMessage from server!";
-//	send(new_client, rec.c_str(), rec.length(), 0);
-
+	std::cout << "==================" << std::endl;
+	std::cout	<< "\e[1;32m[NEW_CLIENT]\e[0m"
+				<< "\nConnected to " << lsocket.fd << " listening socket"
+				<< "\nfd		 = " << new_client << "(" << i << ")"
+				<< "\nport		 = " << inet.sin_port
+				<< "\nip		 = " << inet.sin_addr.s_addr
+				<< "\nIPv4		 = " << inet_ntoa(inet.sin_addr)
+				<< std::endl;
+	addSocket(new_client, (POLLIN | POLLOUT));
 }
 
 void Server::addSocket(int sock, short event) {
@@ -133,6 +153,7 @@ void Server::addSocket(int sock, short event) {
 		{
 			fds[i].fd = sock;
 			fds[i].events = event;
+			fds[i].revents = 0;
 			return ;
 		}
 	}
@@ -140,8 +161,17 @@ void Server::addSocket(int sock, short event) {
 	addSocket(sock, event);
 }
 
+void Server::deleteSocket(pollfd &socket) {
+	std::cout << "\e[0;93mКлиент " <<  socket.fd  << " разорвал соединение!\e[0m" << std::endl;
+	close(socket.fd);
+	socket.fd = -1;
+	socket.events = 0;
+	socket.revents = 0;
+}
+
 void Server::expandPoll() {
 	pollfd	*tmp;
+	pollfd	*tmp2;
 	int 	i;
 
 	fds_size += 100;
@@ -149,13 +179,33 @@ void Server::expandPoll() {
 	tmp[fds_size - 1].fd = -2;
 	for(i = 0; fds[i].fd != -2; i++)
 	{
-		tmp[i] = fds[i];
+		tmp[i].fd = fds[i].fd;
+		tmp[i].events = fds[i].events;
 	}
 	for(int a = i; tmp[a].fd != -2; a++)
 	{
-
 		tmp[a].fd = -1;
 	}
-	delete []fds;
+	tmp2 = fds;
 	fds = tmp;
+	delete []tmp2;
+}
+
+char* Server::strjoin(const char *s1, const char *s2) {
+	int 	i;
+	int 	i2;
+	char 	*res;
+
+	if (!s1) {
+		return(strdup(s2));
+	}
+	i = strlen(s1);
+	std::cout << "flag" << std::endl;
+	i2 = strlen(s2);
+	res = new char[i + i2 + 1];
+
+	strcpy(res, s1);
+	strcat(res, s2);
+	res[i + i2] = '\0';
+	return (res);
 }

@@ -1,24 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   webserv.hpp                                        :+:      :+:    :+:   */
+/*   EventManager.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: swquinc <marvin@42.fr>                     +#+  +:+       +#+        */
+/*   By: swquinc <swquinc@student.21-school.ru>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/06/03 19:17:13 by swquinc           #+#    #+#             */
-/*   Updated: 2021/06/05 14:04:04 by swquinc          ###   ########.fr       */
+/*   Created: 2021/06/15 22:52:19 by swquinc           #+#    #+#             */
+/*   Updated: 2021/06/15 22:52:45 by swquinc          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef WEBSERV_HPP
-# define WEBSERV_HPP
-# include "Core.hpp"
+#ifndef EVENTMANAGER_HPP
+# define EVENTMANAGER_HPP
 
-class Server {
+class EventManager{
 	public:
-		Server();
-		~Server();
-		void start(char *config);
+		EventManager();
+		methodGet();
+		methodPost(); //
+		methodDelete(); //
+	private:
+
 };
 
 #endif
+

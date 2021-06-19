@@ -1,24 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   webserv.hpp                                        :+:      :+:    :+:   */
+/*   RequestParser.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: swquinc <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/06/03 19:17:13 by swquinc           #+#    #+#             */
-/*   Updated: 2021/06/05 14:04:04 by swquinc          ###   ########.fr       */
+/*   Created: 2021/06/19 16:43:26 by swquinc           #+#    #+#             */
+/*   Updated: 2021/06/19 16:43:27 by swquinc          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef WEBSERV_HPP
-# define WEBSERV_HPP
-# include "Core.hpp"
+#ifndef REQUESTPARSER_HPP
+# define REQUESTPARSER_HPP
 
-class Server {
+class RequestParser()
+{
+	private:
 	public:
-		Server();
-		~Server();
-		void start(char *config);
-};
+		RequestParser();
+		~RequestParser();
+}
 
 #endif

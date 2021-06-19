@@ -35,7 +35,6 @@ struct ServerConf {
 	std::map<std::string, Location> getLocation() const;
 private:
 	std::vector<Address> address;
-	`
 };
 
 class Parser {

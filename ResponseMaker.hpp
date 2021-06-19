@@ -1,24 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   webserv.hpp                                        :+:      :+:    :+:   */
+/*   ResponseMaker.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: swquinc <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/06/03 19:17:13 by swquinc           #+#    #+#             */
-/*   Updated: 2021/06/05 14:04:04 by swquinc          ###   ########.fr       */
+/*   Created: 2021/06/19 17:12:55 by swquinc           #+#    #+#             */
+/*   Updated: 2021/06/19 17:12:58 by swquinc          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef WEBSERV_HPP
-# define WEBSERV_HPP
-# include "Core.hpp"
+#ifndef RESPONSEMAKER_HPP
+# define RESPONSEMAKER_HPP
+# include <iostream>
+# include <string>
+# include <sstream>
 
-class Server {
+class ResponseMaker{
+	private:
+
 	public:
-		Server();
-		~Server();
-		void start(char *config);
+		ResponseMaker();
+		~ResponseMaker();
+		std::string makeResponse(const char *request);
 };
 
 #endif

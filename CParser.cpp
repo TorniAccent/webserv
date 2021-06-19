@@ -15,13 +15,17 @@
 Parser::Parser(char *config) {
 	Address address;
 	Address address2;
+	Address address3;
 
 	address.ip = "0.0.0.0";
 	address2.ip = "0.0.0.0";
+	address3.ip = "0.0.0.0";
 	address.port = 2021;
 	address2.port = 1500;
+	address3.port = 1700;
 	this->listen.push_back(address);
 	this->listen.push_back(address2);
+	this->listen.push_back(address3);
 }
 
 Parser::~Parser() {
