@@ -1,13 +1,14 @@
 #include "ConfigParser.hpp"
 
-static std::string noComment(std::fstream fin)
+static std::string noComment(std::fstream & fin)
 {
     std::string s;
-    for (; fin >> s, s == "#"; fin.get() != '\n');
+    for (; fin >> s, s == "#"; )
+        for (; fin.get() != '\n'; );
     return s;
 }
 
-static void throwIn(std::fstream fin, const std::string &ref)
+static void throwIn(std::fstream & fin, const std::string & ref)
 {
     std::string s;
     s = noComment(fin);
@@ -15,7 +16,7 @@ static void throwIn(std::fstream fin, const std::string &ref)
         throw "No \"" + ref + "\" identifier\n";
 }
 
-Config::Config(char *config)
+Config::Config(const char *config)
 {
     std::fstream fin;
     fin.open(config, std::fstream::in);
@@ -36,18 +37,21 @@ Config::Config(char *config)
         {
             if (key != "location")
                 throwIn(fin, "location");
-            fin >> location;
-            Location l;
-            for (std::string val; ; )
-            {
-                key = noComment(fin);
-                if (key == "location" || key == "}")
-                    break;
-                fin >> val;
-                l.method.insert(key, val);
-            }
-            elem.location.insert(location, l);
+            location.push_back(Location(fin));
+            
+            // fin >> location;
+            // Location l;
+            // for (std::string val; ; )
+            // {
+            //     key = noComment(fin);
+            //     if (key == "location" || key == "}")
+            //         break;
+            //     fin >> val;
+            // }
+            // elem.location.insert(std::pair<std::string, Location>(location, l));
         }
         this->server.push_back(elem);
     }
+
+    
 }

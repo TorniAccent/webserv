@@ -2,34 +2,44 @@
 # define CONFIG_PARSER_HPP
 # include <iostream>
 # include <fstream>
-// # include <string>
 # include <vector>
-# include <map>
 
 struct Location {
-	std::map<std::string, std::string> method; // server[0].location.method
+public:
+	Location(std::fstream &fin);
+////
+	std::string web;
+	std::string root;
+	std::string defaultFile;
+	std::string redirect;
+	std::vector<std::string> methods;
+	bool listing;
+	std::string extension;
+private:
+	Location();
+	Location(Location &copy);
+	Location &operator=(Location &copy);
 };
 
 struct Server {
 	std::string host;
 	int port;
-	std::map<std::string, Location> location; // server[0].location
+	std::vector<Location> location; // server[0].location
 };
 
 class Config {
 public:
-	Config(char *config);
-	~Config();
+	Config(const char *config = "file");
+	// ~Config();
 ////
 	// Server &getServer(size_t index) const;
 	// void addServer(Server const &server);
-////
-	std::vector<Server> server; //server[0]
 private:
+	std::vector<Server> server; //server[0]
 ////
 	Config();
 	Config(const Config &copy);
-	Config const &operator=(Config const &copy);
+	Config &operator=(Config &copy);
 };
 
 #endif
