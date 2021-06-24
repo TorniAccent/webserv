@@ -5,7 +5,8 @@ server
 	index index.html index.htm index.php;
 	limit 4096;
 	error_pages 404 403 /error_pages;
-	root /root/
+	error_pages 405 500 /error_pages1;
+	error_pages 404 403 /error_pages2;
 
 #	max.com/dir/index.html
 

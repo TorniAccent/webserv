@@ -9,7 +9,7 @@ static std::string noComment(std::fstream &fin) {
 
 static const std::string throwIn(std::fstream &fin, const char *ref) {
 	std::string s = noComment(fin);
-	if (!ref && s != ref) {
+	if (ref && s != ref) {
 		throw ref;
 	}
 	return s;
@@ -17,7 +17,7 @@ static const std::string throwIn(std::fstream &fin, const char *ref) {
 
 static bool noSemi(std::fstream &fin, std::string &tmp) {
 	fin >> tmp;
-	if (tmp.find(';')) {
+	if (tmp.find(';') != std::string::npos) {
 		tmp.erase(tmp.end() - 1);
 		return true;
 	}
@@ -49,8 +49,8 @@ Config::Host::Host(std::fstream &fin) {
 		}
 	}
 	/// limit
-	{
-		if (throwIn(fin, nullptr) == "error_pages") {
+	{ //todo: convert from KB, MB etc
+		if (throwIn(fin, 0) == "error_pages") {
 			prev = true;
 		} else {
 			std::string tmp;
@@ -62,11 +62,12 @@ Config::Host::Host(std::fstream &fin) {
 	{
 		if (!prev)
 			throwIn(fin, "error_pages");
-		std::vector<int>v;
-		std::string tmp;
-		for (; !noSemi(fin, tmp); )
-			v.push_back(std::stoi(tmp));
-		errorPages.insert(std::pair<std::vector<int>, std::string>(v, tmp));
+		for (std::vector<int>v; prev || throwIn(fin, 0) == "error_pages"; prev = 0) {
+			std::string tmp;
+			for (; !noSemi(fin, tmp); )
+				v.push_back(std::stoi(tmp));
+			errorPages.insert(std::pair<std::vector<int>, std::string>(v, tmp));
+		}
 	}
 	/// location
 	{

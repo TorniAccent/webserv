@@ -1,14 +1,13 @@
 #include "ConfigParser.hpp"
 
 Config::Config(const char *config) {
-	std::fstream fin;
-	fin.open(config, std::fstream::in);
-	if (fin.is_open() == false)
+	std::fstream fin(config);
+	if (!fin.is_open())
 		throw "File did not open\n";
 
-	for (; fin.eof(); ) {
+//	for (; !fin.eof(); ) {
 		hosts.push_back(Host(fin));
-	}
+//	}
 }
 
 Config::Config(Config const &copy) {

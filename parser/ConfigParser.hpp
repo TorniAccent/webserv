@@ -6,6 +6,8 @@
 # include <map>
 # include <cstring>
 
+using std::cout;
+
 class Config {
 public:
 	class Host;

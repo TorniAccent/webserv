@@ -2,11 +2,18 @@
 
 int main()
 {
-	// Parser cparser(NULL); //
-	// std::vector<Address> listen = cparser.getListen(); // уникальные  host:port
-	// listen[0].ip;
-	// listen[0].port;
-	// std::vector<Server> var = cparser.getServer(); //
-
-	Config config("file");
+	std::cout << "lol" << std::endl;
+	try
+	{
+		Config config("file");
+		std::vector<Config::Host> hosts =  config.getHosts();
+		cout << hosts.front().getAddress().first << "\n";
+		cout << hosts.front().getAddress().second << "\n";
+		cout << hosts.front().getLimitBodySize() << "\n";
+		cout << hosts.front().getErrorPages().begin()->first[0] << "\n";
+	}
+	catch (const char *e)
+	{
+		cout << e << "\n";
+	}
 }
