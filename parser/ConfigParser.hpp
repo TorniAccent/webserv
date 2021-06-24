@@ -3,43 +3,63 @@
 # include <iostream>
 # include <fstream>
 # include <vector>
+# include <map>
+# include <cstring>
 
-struct Location {
+class Config {
 public:
-	Location(std::fstream &fin);
+	class Host;
 ////
+	explicit Config(const char *config = "file");
+	Config(Config const &copy);
+	Config &operator=(Config const &copy);
+////
+	std::vector<Host> getHosts() const ;
+private:
+	std::vector<Host> hosts;
+};
+
+
+class Config::Host {
+public:
+	class Location;
+////
+	explicit Host(std::fstream &fin);
+////
+	std::pair<std::string, int> getAddress() const;
+	std::vector<std::string> getIndexes() const;
+	size_t getLimitBodySize() const; // ?
+	std::map<std::vector<int>, std::string> getErrorPages() const;
+		// std::vector<int> errorCode, std::string pagePass
+	std::vector<Location> getLocations() const;
+
+private:
+	std::pair<std::string, int> address;
+	std::vector<std::string> indexes;
+	size_t limit;
+	std::map<std::vector<int>, std::string> errorPages;
+	std::vector<Location> locations;
+};
+
+
+class Config::Host::Location {
+public:
+	explicit Location(std::fstream &fin);
+////
+	std::string getRoot();
+	std::vector<std::string> getMethods();
+	bool autoindex();
+	std::vector<std::string> getIndexes();
+	std::string getCGI();
+private:
 	std::string web;
 	std::string root;
 	std::string defaultFile;
 	std::string redirect;
 	std::vector<std::string> methods;
+	std::vector<std::string> indexes;
 	bool listing;
 	std::string extension;
-private:
-	Location();
-	Location(Location &copy);
-	Location &operator=(Location &copy);
-};
-
-struct Server {
-	std::string host;
-	int port;
-	std::vector<Location> location; // server[0].location
-};
-
-class Config {
-public:
-	Config(const char *config = "file");
-	// ~Config();
-////
-	// Server &getServer(size_t index) const;
-	// void addServer(Server const &server);
-private:
-	std::vector<Server> server; //server[0]
-////
-	Config();
-	Config(const Config &copy);
-	Config &operator=(Config &copy);
 };
 
 #endif

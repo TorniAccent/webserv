@@ -1,9 +1,26 @@
 server
 {
-    host 127.0.0.1
-    port 80
+	host 127.0.0.1;
+	port 80;
+	index index.html index.htm index.php;
+	limit 4096;
+	error_pages 404 403 /error_pages;
+	root /root/
 
-    location /
-        Methods GET
-        root /users/mchantel/myserver
+#	max.com/dir/index.html
+
+	location /dir/
+	{
+	}
+	location /dir/*.php
+	{
+	}
+	location /dir/index.php
+	{
+		root /root/
+		Methods GET POST DELETE
+		autoindex off
+		index max.php tar.php
+		cgi /root/phpmyadmin/
+	}
 }

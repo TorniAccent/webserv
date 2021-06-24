@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 98)
 include_directories(parser)
 
 add_executable(webserv
-        parser/ConfigParser.cpp
-        parser/ConfigParser.hpp
-        parser/Location.cpp
-        main.cpp)
+		parser/ConfigParser.hpp
+		parser/Config.cpp
+		parser/Location.cpp
+		main.cpp parser/Host.cpp)
