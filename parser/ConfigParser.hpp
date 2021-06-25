@@ -8,6 +8,8 @@
 
 using std::cout;
 
+# define npos std::string::npos
+
 class Config {
 public:
 	class Host;

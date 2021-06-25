@@ -10,18 +10,18 @@ server
 
 #	max.com/dir/index.html
 
-	location /dir/
+	location /dir/:
 	{
 	}
-	location /dir/*.php
+	location /dir/*.php:
 	{
 	}
-	location /dir/index.php
+	location /dir/index.php:
 	{
-		root /root/
-		Methods GET POST DELETE
-		autoindex off
-		index max.php tar.php
-		cgi /root/phpmyadmin/
+		root /root/;
+		Methods GET POST DELETE;
+		autoindex off;
+		index max.php tar.php;
+		cgi /root/phpmyadmin/;
 	}
 }

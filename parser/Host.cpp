@@ -17,7 +17,7 @@ static const std::string throwIn(std::fstream &fin, const char *ref) {
 
 static bool noSemi(std::fstream &fin, std::string &tmp) {
 	fin >> tmp;
-	if (tmp.find(';') != std::string::npos) {
+	if (tmp.find(';') != npos) {
 		tmp.erase(tmp.end() - 1);
 		return true;
 	}
@@ -70,8 +70,8 @@ Config::Host::Host(std::fstream &fin) {
 		}
 	}
 	/// location
-	{
-		for (std::string tmp; fin >> tmp, tmp != "}"; ) {
+	{ // todo: set condition
+		for (std::string tmp; fin; ) {
 			locations.push_back(Location(fin));
 		}
 	}
