@@ -46,21 +46,13 @@ void Server::start() {
 }
 
 void Server::findEvent(int events) {
-	std::string		response;
-	const char		*request;
-	ResponseMaker	responseMaker;
-
 	(void)events;
+
 	for (int i = 0; (_fds[i].fd != -2); i++) {
 		if (_fds[i].revents == NEW_CONNECTION)
 			acceptConnection(_fds[i], i);
-		else if (_fds[i].revents == REQUEST_RESPONSE) {
-			request = getRequest(_fds[i].fd);
-			response = responseMaker.makeResponse(request);
-			delete request;
-			if (send(_fds[i].fd, response.c_str(), response.length(), 0) < 0)
-				throw "over";
-		}
+		else if (_fds[i].revents == REQUEST_RESPONSE)
+			recvRequest_sendResponse(_fds[i]);
 		else if (_fds[i].revents >= POLLHUP && _fds[i].revents <= 17)
 			deleteSocket(_fds[i]);
 		else if (_fds[i].revents == POLLERR)
@@ -72,6 +64,24 @@ void Server::findEvent(int events) {
 				std::cout << _fds[i].revents << std::endl;
 		}
 	}
+}
+
+void Server::recvRequest_sendResponse(pollfd &sock) {
+	RequestParser	requestParser(_configParser);
+	ResponseMaker	responseMaker(_configParser);
+	std::string 	response;
+	bool 			isSuccess;
+
+	isSuccess = requestParser.recieve(sock);
+	if (!isSuccess) {
+		sock.fd = -1;
+		sock.revents = 0;
+		sock.events = 0;
+		return ;
+	}
+	response = responseMaker.makeResponse(requestParser);
+	if (send(sock.fd, response.c_str(), response.length(), 0) < 0)
+		throw "over";
 }
 
 void Server::startListen(Listen listen) {
@@ -106,20 +116,27 @@ void Server::startListen(Listen listen) {
 const char 	*Server::getRequest(int fd) {
 	char		buffer[BUFFER_SIZE];
 	int 		size;
+//	int 		check;
 	const char 	*data;
 	const char 	*tmp;
-
 	data = nullptr;
+
+//	std::cout << paintString("[RECV RETURN] = ", BOLD, GREEN, 0) << check << std::endl;
 	while(true) {
 		size = recv(fd, &buffer, BUFFER_SIZE, 0);
+		std::cout << paintString("[RECV READ] = ", BOLD, GREEN, 0) << size << std::endl;
 		if (size > 0) {
 			buffer[size] = '\0';
 			tmp = data;
 			data = strjoin(data, buffer);
 			delete tmp;
 		}
-		else
+		else if (size == -1)
 			break;
+		else if (size == 0){
+			close(fd);
+			return (nullptr);
+		}
 	}
 	return (data);
 }

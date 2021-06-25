@@ -12,7 +12,11 @@
 
 #include "CParser.hpp"
 
-Parser::Parser(char *config) {
+ConfigParser::ConfigParser() {
+
+}
+
+ConfigParser::ConfigParser(char *config) {
 	(void)config;
 	Address address;
 	Address address2;
@@ -29,14 +33,14 @@ Parser::Parser(char *config) {
 	this->listen.push_back(address3);
 }
 
-Parser::~Parser() {
+ConfigParser::~ConfigParser() {
 
 }
 
-std::vector<Address> Parser::getListen(void) const {
+std::vector<Address> ConfigParser::getListen(void) const {
  	return (this->listen);
  }
 
- std::vector<ServerConf> Parser::getServer() const {
+ std::vector<ServerConf> ConfigParser::getServer() const {
 	return (this->server);
 }

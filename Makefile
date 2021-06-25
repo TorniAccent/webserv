@@ -35,16 +35,20 @@ HPP			= $(addprefix -I , $(filter %.hpp, $(FILES)))
 OBJS		= $(addprefix $(OBJDIR)/, $(patsubst %.cpp,%.o,$(filter %.cpp,$(FILES_TMP))))
 OBJS_SUB	= $(addprefix $(OBJDIR)/, parser core response)
 
+BUFFER_SIZE = -D BUFFER_SIZE=100
+FLAGS = -Wall -Wextra -Werror
+
+
 all: $(NAME)
 
 $(NAME): $(OBJDIR) $(OBJS)
-	clang++ -Wall -Wextra -Werror $(HPP) $(OBJS) -o $@
+	clang++ $(FLAGS) $(BUFFER_SIZE) $(HPP) $(OBJS) -o $@
 
 $(OBJDIR):
 	mkdir -p $(OBJS_SUB)
 
 $(OBJDIR)/%.o: $(SRCSDIR)/%.cpp
-	clang++	-Wall -Wextra -Werror $(HPP) -c $< -o $@
+	clang++	$(FLAGS) $(BUFFER_SIZE) $(HPP) -c $< -o $@
 
 clean:
 	rm -rf $(OBJDIR)

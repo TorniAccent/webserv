@@ -37,15 +37,15 @@ private:
 	std::vector<Address> address;
 };
 
-class Parser {
+class ConfigParser {
 	private:
-		Parser();
 		std::vector<Address> listen; // уникальные   ip:host
 		std::vector<ServerConf> server;
 		 
 	public:
-		Parser(char *config); // если config == NULL, нужно расспарсить config file по-умолчанию.
-		~Parser(); // динамическую память нужно почистить, если она была выделена.
+		ConfigParser();
+		ConfigParser(char *config); // если config == NULL, нужно расспарсить config file по-умолчанию.
+		~ConfigParser(); // динамическую память нужно почистить, если она была выделена.
 		std::vector<Address> getListen(void) const;
 		std::vector<ServerConf> getServer() const;
 };

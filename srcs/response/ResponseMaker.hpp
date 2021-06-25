@@ -15,16 +15,24 @@
 # include <iostream>
 # include <string>
 # include <sstream>
+# include <fstream>
+# include <fcntl.h>
 # include "../parser/RequestParser.hpp"
+# include "../parser/CParser.hpp"
 
 class ResponseMaker{
 	private:
-		std::string get(RequestParser &parser);
-		std::string post(RequestParser &parser);
+		RequestParser	RParser;
+		ConfigParser	CParser;
+
 	public:
 		ResponseMaker();
+		explicit ResponseMaker(ConfigParser &configParser);
 		~ResponseMaker();
-		std::string makeResponse(const char *request);
+
+		std::string makeResponse(RequestParser &requestParser);
+		std::string get(RequestParser &requestParser);
+		std::string post(RequestParser &requestParser);
 };
 
 #endif

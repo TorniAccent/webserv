@@ -35,7 +35,7 @@
 # include "../parser/CParser.hpp"
 # include "../response/ResponseMaker.hpp"
 # include <netinet/in.h>
-# define BUFFER_SIZE		1500
+//# define BUFFER_SIZE		1500
 # define NEW_CONNECTION		POLLRDNORM
 # define REQUEST_RESPONSE	(POLLIN | POLLOUT)
 # define BLACK		30
@@ -69,13 +69,14 @@ class Server {
 		pollfd							*_fds;
 		nfds_t 							_nfds;
 		int 							_fds_size;
-		Parser							_configParser;
+		ConfigParser					_configParser;
 
 		void 			addSocket(int sock, short event);
 		void 			deleteSocket(pollfd &fd);
 		void 			expandPoll();
 		void			findEvent(int events);
 		const char		*getRequest(int fd);
+		void			recvRequest_sendResponse(pollfd &sock);
 		void 			startListen(Listen listen);
 		void 			acceptConnection(pollfd lsocket, int i);
 		const char 		*strjoin(const char* s1, const char *s2) const;
