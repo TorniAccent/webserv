@@ -2,7 +2,7 @@
 
 int main()
 {
-	std::cout << "lol" << std::endl;
+	std::cout << npos << std::endl;
 	try
 	{
 		Config config("file");
@@ -10,7 +10,7 @@ int main()
 		cout << hosts.front().getAddress().first << "\n";
 		cout << hosts.front().getAddress().second << "\n";
 		cout << hosts.front().getLimitBodySize() << "\n";
-		cout << hosts.front().getErrorPages().begin()->first[0] << "\n";
+//		cout << hosts.front().getErrorPages().begin()->first[0] << "\n";
 	}
 	catch (const char *e)
 	{

@@ -59,7 +59,7 @@ Config::Host::Host(std::fstream &fin) {
 		}
 	}
 	/// error_pages
-	{
+	{ // todo: fix multiple error_pages support
 		if (!prev)
 			throwIn(fin, "error_pages");
 		for (std::vector<int>v; prev || throwIn(fin, 0) == "error_pages"; prev = 0) {
@@ -69,9 +69,14 @@ Config::Host::Host(std::fstream &fin) {
 			errorPages.insert(std::pair<std::vector<int>, std::string>(v, tmp));
 		}
 	}
+	/// \n
+	{ //todo: remove this
+		std::string tmp;
+		std::getline(fin, tmp);
+	}
 	/// location
-	{ // todo: set condition
-		for (std::string tmp; fin; ) {
+	{
+		for (std::string tmp; std::getline(fin, tmp), tmp != "}"; ) {
 			locations.push_back(Location(fin));
 		}
 	}

@@ -50,6 +50,7 @@ class Config::Host::Location {
 public:
 	explicit Location(std::fstream &fin);
 ////
+	std::string getWeb();
 	std::string getRoot();
 	std::vector<std::string> getMethods();
 	bool autoindex();
@@ -58,12 +59,12 @@ public:
 private:
 	std::string web;
 	std::string root;
-	std::string defaultFile;
-	std::string redirect;
 	std::vector<std::string> methods;
-	std::vector<std::string> indexes;
 	bool listing;
-	std::string extension;
+	std::vector<std::string> indexes;
+	std::string cgiFile;
+//	std::string redirect;
+//	std::string extension;
 };
 
 #endif

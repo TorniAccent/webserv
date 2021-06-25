@@ -5,21 +5,11 @@ server
 	index index.html index.htm index.php;
 	limit 4096;
 	error_pages 404 403 /error_pages;
-	error_pages 405 500 /error_pages1;
-	error_pages 404 403 /error_pages2;
 
-#	max.com/dir/index.html
-
-	location /dir/:
-	{
-	}
-	location /dir/*.php:
-	{
-	}
 	location /dir/index.php:
 	{
 		root /root/;
-		Methods GET POST DELETE;
+		methods GET POST DELETE;
 		autoindex off;
 		index max.php tar.php;
 		cgi /root/phpmyadmin/;
