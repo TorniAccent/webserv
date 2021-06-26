@@ -13,31 +13,38 @@
 #ifndef REQUESTPARSER_HPP
 # define REQUESTPARSER_HPP
 # include <iostream>
-# include "../parser/CParser.hpp"
+# include "../parser/ConfigParser.hpp"
 # include <sys/socket.h>
 # include <poll.h>
 # include <vector>
+# include <sstream>
 # include <string>
+# include <list>
 # include <unistd.h>
 
 class RequestParser
 {
 	private:
-		ConfigParser	_config;
-		std::string		method;
-		std::vector<std::string> _header_fields;
-		char			*_data;
-		const char 	*strjoin(const char* s1, const char *s2) const;
-		bool		collectHeader(const char *data);
-		bool		collectBody(const char *data);
+
+		Config				_config;
+		std::string					_method;
+		std::string 				_uri;
+		std::string 				_connection;
+		std::list<std::string>		_accept;
+		std::string					_media_type;
+		std::string 				_charset;
+		std::string 				_boundary;
+		std::pair<std::string, int>	_host;
+
 	public:
 		RequestParser();
-		explicit RequestParser(ConfigParser &configParser);
+		explicit RequestParser(Config &configParser);
 		RequestParser &operator=(const RequestParser &r);
 		~RequestParser();
-		bool recieve(pollfd sock);
+
+		bool 		parseHeader();
 		std::string getMethod(void) const;
-		std::string getData(void) const;
+		int 		getError(void) const;
 };
 
 #endif

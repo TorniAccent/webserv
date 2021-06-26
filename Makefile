@@ -10,11 +10,11 @@
 #                                                                              #
 # **************************************************************************** #
 
-NAME		=	server
+NAME		= server
 
-PARSER		= CParser.cpp RequestParser.cpp CParser.hpp RequestParser.hpp
+PARSER		= Config.cpp ConfigParser.hpp Host.cpp Location.cpp utils.cpp RequestParser.cpp RequestParser.hpp #CParser.cpp CParser.hpp
 CORE		= Server.cpp Server.hpp
-RESPONSE	= ResponseMaker.cpp ResponseMaker.hpp
+RESPONSE	= Executor.cpp Executor.hpp
 MAIN		= webserv.cpp
 
 PARSERRDIR	= parser
@@ -30,14 +30,15 @@ FILES_TMP	= $(addprefix $(PARSERRDIR)/, $(PARSER)) \
 FILES		= $(addprefix $(SRCSDIR)/, $(FILES_TMP))
 
 CPP			= $(filter %.cpp,$(FILES))
-HPP			= $(addprefix -I , $(filter %.hpp, $(FILES)))
+HPP1		= $(filter %.hpp, $(FILES))
+HPP			= $(addprefix -I ,$(dir $(HPP1)))
+
 
 OBJS		= $(addprefix $(OBJDIR)/, $(patsubst %.cpp,%.o,$(filter %.cpp,$(FILES_TMP))))
 OBJS_SUB	= $(addprefix $(OBJDIR)/, parser core response)
 
 BUFFER_SIZE = -D BUFFER_SIZE=100
-FLAGS = -Wall -Wextra -Werror
-
+FLAGS = -Wno-unused-variable #-Wall -Wextra -Werror
 
 all: $(NAME)
 

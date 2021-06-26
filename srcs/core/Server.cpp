@@ -13,10 +13,22 @@
 #include "Server.hpp"
 
 Server::Server(char *config): _configParser(config) {
+	std::vector<Config::Host> hosts;
 	_fds = new pollfd[1];
 	_fds[0].fd = -2;
+	_fds[0].events = 0;
 	_fds_size = 0;
 	_nfds = 0;
+
+	hosts = _configParser.getHosts();
+	std::vector<Config::Host>::iterator it;
+
+	it = hosts.begin();
+	while (it != hosts.end())
+	{
+		_listen.push_back(it->getAddress());
+		it++;
+	}
 }
 
 
@@ -30,7 +42,7 @@ void Server::start() {
 	std::cout << paintString("\n[Running server]", BOLD, BWHITE, 0) << std::endl;
 	std::cout << paintString(" Parsing   -> [OK]", BOLD, GREEN, 0) << std::endl;
 
-	startListen(_configParser.getListen());
+	startListen(_listen);
 
 	std::cout << paintString("[Success]", BOLD, BWHITE, 0) << '\n' <<std::endl;
 	std::cout << paintString("[Waiting to events]", BOLD, BWHITE, 0) << std::endl;
@@ -60,31 +72,36 @@ void Server::findEvent(int events) {
 		else if (_fds[i].revents == POLLNVAL)
 			throw "Файловый дескриптор не открыт";
 		else {
-			if (_fds[i].revents != 0 && _fds[i].revents != 4)
-				std::cout << _fds[i].revents << std::endl;
+//			if (_fds[i].revents != 0 && _fds[i].revents != 4)
+//				std::cout << _fds[i].revents << "[ALERT]"<< std::endl;
 		}
 	}
 }
 
 void Server::recvRequest_sendResponse(pollfd &sock) {
 	RequestParser	requestParser(_configParser);
-	ResponseMaker	responseMaker(_configParser);
+	Executor executor(_configParser, requestParser);
 	std::string 	response;
 	bool 			isSuccess;
 
-	isSuccess = requestParser.recieve(sock);
+	//RequestParser ResponseMaker >> Executor
+
+	//executor.receiveRequest(sock); //bool
+	//executor.executeMethod(); //bool
+	//executor.sendResponse(sock); //bool
+
+	isSuccess = executor.receiveRequest(sock);
 	if (!isSuccess) {
+		close(sock.fd);
 		sock.fd = -1;
 		sock.revents = 0;
 		sock.events = 0;
 		return ;
 	}
-	response = responseMaker.makeResponse(requestParser);
-	if (send(sock.fd, response.c_str(), response.length(), 0) < 0)
-		throw "over";
+	executor.sendResponse(sock);
 }
 
-void Server::startListen(Listen listen) {
+void Server::startListen(Listen &listen) {
 	int					opt;
 	int					sock;
 	struct sockaddr		*base;
@@ -100,8 +117,8 @@ void Server::startListen(Listen listen) {
 		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)); // от залипания tcp-порта.
 
 		inet.sin_family = PF_INET; // Семейство сокета.
-		inet.sin_port = htons(it->port); // переводим значение порта в сетевой порядок следования байт
-		inet.sin_addr.s_addr = inet_addr(it->ip.c_str()); // переводит char* в какое-то число, необходимо для bind();
+		inet.sin_port = htons(it->second); // переводим значение порта в сетевой порядок следования байт
+		inet.sin_addr.s_addr = inet_addr(it->first.c_str()); // переводит char* в какое-то число, необходимо для bind();
 
 		base = reinterpret_cast<struct sockaddr *>(&inet);
 		if (bind(sock, base, sizeof(inet)) == -1)
@@ -113,33 +130,6 @@ void Server::startListen(Listen listen) {
 	std::cout << "\033[1;32m[OK]\033[0m" << std::endl;
 }
 
-const char 	*Server::getRequest(int fd) {
-	char		buffer[BUFFER_SIZE];
-	int 		size;
-//	int 		check;
-	const char 	*data;
-	const char 	*tmp;
-	data = nullptr;
-
-//	std::cout << paintString("[RECV RETURN] = ", BOLD, GREEN, 0) << check << std::endl;
-	while(true) {
-		size = recv(fd, &buffer, BUFFER_SIZE, 0);
-		std::cout << paintString("[RECV READ] = ", BOLD, GREEN, 0) << size << std::endl;
-		if (size > 0) {
-			buffer[size] = '\0';
-			tmp = data;
-			data = strjoin(data, buffer);
-			delete tmp;
-		}
-		else if (size == -1)
-			break;
-		else if (size == 0){
-			close(fd);
-			return (nullptr);
-		}
-	}
-	return (data);
-}
 
 void Server::acceptConnection(pollfd lsocket, int i) {
 	int					new_client;
@@ -217,24 +207,6 @@ void Server::expandPoll() {
 	delete []tmp2;
 }
 
-const char* Server::strjoin(const char *s1, const char *s2) const{
-	size_t 	i;
-	size_t 	i2;
-	char 	*res;
-
-	if (!s1) {
-		return(strdup(s2));
-	}
-	i = strlen(s1);
-	std::cout << "flag" << std::endl;
-	i2 = strlen(s2);
-	res = new char[i + i2 + 1];
-
-	strcpy(res, s1);
-	strcat(res, s2);
-	res[i + i2] = '\0';
-	return (res);
-}
 
 std::string paintString(const std::string &string, int format, int color, int background)
 {
