@@ -1,27 +1,11 @@
 #include "ConfigParser.hpp"
 
-static std::string noComment(std::fstream &fin) {
-	std::string s;
-	for (; fin >> s, s == "#"; )
-		for (; fin.get() != '\n'; );
-	return s;
-}
-
 static const std::string throwIn(std::fstream &fin, const char *ref) {
 	std::string s = noComment(fin);
 	if (ref && s != ref) {
 		throw ref;
 	}
 	return s;
-}
-
-static bool noSemi(std::fstream &fin, std::string &tmp) {
-	fin >> tmp;
-	if (tmp.find(';') != npos) {
-		tmp.erase(tmp.end() - 1);
-		return true;
-	}
-	return false;
 }
 
 Config::Host::Host(std::fstream &fin) {
@@ -49,14 +33,18 @@ Config::Host::Host(std::fstream &fin) {
 		}
 	}
 	/// limit
-	{ //todo: convert from KB, MB etc
-		if (throwIn(fin, 0) == "error_pages") {
-			prev = true;
-		} else {
-			std::string tmp;
-			noSemi(fin, tmp);
-			limit = std::stoi(tmp);
-		}
+	{ //todo: make this optional
+//		if (throwIn(fin, 0) == "error_pages") {
+//			prev = true;
+//		} else {
+//			std::string tmp;
+//			noSemi(fin, tmp);
+//			limit = std::stoi(tmp);
+//		}
+		throwIn(fin, "limit");
+		std::string lim;
+		noSemi(fin, lim);
+		limit = std::stoi(lim);
 	}
 	/// error_pages
 	{ // todo: fix multiple error_pages support

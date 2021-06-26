@@ -4,7 +4,7 @@ server
 	port 80;
 	index index.html index.htm index.php;
 	limit 4096;
-	error_pages 404 403 /error_pages;
+	error_pages /error_pages/;
 
 	location /dir/index.php:
 	{

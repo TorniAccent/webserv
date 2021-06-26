@@ -4,7 +4,7 @@ Config::Config(const char *config) {
 	std::fstream fin(config);
 	if (!fin.is_open())
 		throw "File did not open\n";
-
+	// todo: recreate loop
 //	for (; !fin.eof(); ) {
 		hosts.push_back(Host(fin));
 //	}

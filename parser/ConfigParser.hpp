@@ -10,6 +10,11 @@ using std::cout;
 
 # define npos std::string::npos
 
+std::string noComment(std::fstream &fin);
+bool noSemi(std::fstream &fin, std::string &tmp);
+size_t findField(std::string &str, const char *ref);
+std::vector<std::string> split(std::string &str, const char *ref);
+
 class Config {
 public:
 	class Host;
@@ -50,12 +55,12 @@ class Config::Host::Location {
 public:
 	explicit Location(std::fstream &fin);
 ////
-	std::string getWeb();
-	std::string getRoot();
-	std::vector<std::string> getMethods();
-	bool autoindex();
-	std::vector<std::string> getIndexes();
-	std::string getCGI();
+	std::string getWeb() const;
+	std::string getRoot() const;
+	std::vector<std::string> getMethods() const;
+	bool autoindex() const;
+	std::vector<std::string> getIndexes() const;
+	std::string getCGI() const;
 private:
 	std::string web;
 	std::string root;

@@ -9,4 +9,4 @@ add_executable(webserv
 		parser/ConfigParser.hpp
 		parser/Config.cpp
 		parser/Location.cpp
-		main.cpp parser/Host.cpp)
+		main.cpp parser/Host.cpp parser/utils.cpp)
