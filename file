@@ -14,4 +14,13 @@ server
 		index max.php tar.php;
 		cgi /root/phpmyadmin/;
 	}
+
+	location /dir/index.php:
+	{
+		root /root/;
+		methods GET POST DELETE;
+		autoindex off;
+		index max.php tar.php;
+		cgi /root/phpmyadmin/;
+	}
 }
