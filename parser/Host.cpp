@@ -34,35 +34,20 @@ Config::Host::Host(std::fstream &fin) {
 	}
 	/// limit
 	{ //todo: make this optional
-//		if (throwIn(fin, 0) == "error_pages") {
-//			prev = true;
-//		} else {
-//			std::string tmp;
-//			noSemi(fin, tmp);
-//			limit = std::stoi(tmp);
-//		}
 		throwIn(fin, "limit");
 		std::string lim;
 		noSemi(fin, lim);
 		limit = std::stoi(lim);
 	}
 	/// error_pages
-	{ // todo: fix multiple error_pages support
-//		if (!prev)
-//			throwIn(fin, "error_pages");
-//		for (std::vector<int>v; prev || throwIn(fin, 0) == "error_pages"; prev = 0) {
-//			std::string tmp;
-//			for (; !noSemi(fin, tmp); )
-//				v.push_back(std::stoi(tmp));
-//			errorPages.insert(std::pair<std::vector<int>, std::string>(v, tmp));
-//		}
+	{
 		throwIn(fin, "error_pages");
 		std::string err;
 		noSemi(fin, err);
 		errorPages = err;
 	}
 	/// \n
-	{ //todo: remove this
+	{
 		std::string tmp;
 		std::getline(fin, tmp);
 	}

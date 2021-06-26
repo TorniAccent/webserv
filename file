@@ -24,3 +24,30 @@ server
 		cgi /root/phpmyadmin/;
 	}
 }
+
+server
+{
+	host 127.0.0.1;
+	port 80;
+	index index.html index.htm index.php;
+	limit 4096;
+	error_pages /error_pages/;
+
+	location /dir/index.php:
+	{
+		root /root/;
+		methods GET POST DELETE;
+		autoindex off;
+		index max.php tar.php;
+		cgi /root/phpmyadmin/;
+	}
+
+	location /dir/index.php:
+	{
+		root /root/;
+		methods GET POST DELETE;
+		autoindex off;
+		index max.php tar.php;
+		cgi /root/phpmyadmin/;
+	}
+}
