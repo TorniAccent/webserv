@@ -48,14 +48,18 @@ Config::Host::Host(std::fstream &fin) {
 	}
 	/// error_pages
 	{ // todo: fix multiple error_pages support
-		if (!prev)
-			throwIn(fin, "error_pages");
-		for (std::vector<int>v; prev || throwIn(fin, 0) == "error_pages"; prev = 0) {
-			std::string tmp;
-			for (; !noSemi(fin, tmp); )
-				v.push_back(std::stoi(tmp));
-			errorPages.insert(std::pair<std::vector<int>, std::string>(v, tmp));
-		}
+//		if (!prev)
+//			throwIn(fin, "error_pages");
+//		for (std::vector<int>v; prev || throwIn(fin, 0) == "error_pages"; prev = 0) {
+//			std::string tmp;
+//			for (; !noSemi(fin, tmp); )
+//				v.push_back(std::stoi(tmp));
+//			errorPages.insert(std::pair<std::vector<int>, std::string>(v, tmp));
+//		}
+		throwIn(fin, "error_pages");
+		std::string err;
+		noSemi(fin, err);
+		errorPages = err;
 	}
 	/// \n
 	{ //todo: remove this
@@ -82,7 +86,7 @@ size_t Config::Host::getLimitBodySize() const {
 	return limit;
 }
 
-std::map<std::vector<int>, std::string> Config::Host::getErrorPages() const {
+std::string Config::Host::getErrorPages() const {
 	return errorPages;
 }
 
