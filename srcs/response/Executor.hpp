@@ -34,6 +34,8 @@ class Executor {
 
 	private:
 		int						_error;
+		size_t 					_body_size;
+		size_t					_max_body_size;
 		char					*_data;
 		Config					&_configParser;
 		RequestParser			&_requestParser;

@@ -12,30 +12,84 @@
 
 #include "Executor.hpp"
 
+/*
+ * 1) Получение данных
+ * 2) Вычленение и парсинг первых двух полей хедера (method-uri, host:port)
+ * 3) Считывание всего хедера и его парсинг
+ * 4) Ищем нужный Location
+ * 5) Выполняем метод
+ * 6) Формируем ответ
+ * 7) Отправляем ответ
+ */
 
 Executor::Executor(Config &configParser, RequestParser &requestParser):
 _configParser(configParser),  _requestParser(requestParser) {
-
+	_body_size = 0;
+//	_max_body_size = _configParser
 }
 
 bool Executor::receiveRequest(pollfd &sock) {
-	char		buffer[BUFFER_SIZE];
-	int 		size;
-	bool 		isSuccess;
-	const char 	*data;
-	const char 	*tmp;
-	bool 		next_step;
+	char				buffer[BUFFER_SIZE];
+	int 				size;
+	bool 				isSuccess;
+	const char 			*data;
+	const char 			*tmp;
+	bool 				next_step;
+	std::stringstream	header;
+	std::string			first_field;
+	size_t 				res;
 
 	data = nullptr;
 	next_step = false;
 	isSuccess = false;
 	while(true) {
 		size = recv(sock.fd, &buffer, BUFFER_SIZE - 1, 0);
+//		if (_body_size >)
 		if (size > 0) {
 			buffer[size] = '\0';
-			tmp = data;
-			data = strjoin(data, buffer);
-			delete tmp;
+			first_field.append(buffer);
+			////first_two_Lines
+			if (!next_step) {
+				res = first_field.find("\r\n");
+
+				if (res <= 0)
+					res = first_field.find('\r');
+				else
+					next_step = true;
+
+				if (res <= 0)
+					res = first_field.find('\n');
+				else
+					next_step = true;
+
+				if (res > 0)
+					next_step = true;
+
+//				if (next_step)
+
+			}
+			////full_header
+			res = first_field.find("\r\n\r\n");
+			_body_size += size;
+			if (res == npos)
+				continue ;
+			else
+				std::cout << first_field << std::endl;
+//			for (int i = 0; buffer[i] != '\0'; i++)
+//			{
+//				if (buffer[i] == '\r' || '\n')
+//				{
+//					if (buffer[i] == '\r' && buffer[i + 1] == '\n')
+//					{
+//
+//					}
+//
+//				}
+//			}
+//			buffer[size] = '\0';
+//			tmp = data;
+//			data = strjoin(data, buffer);
+//			delete tmp;
 //			isSuccess = collectRequest(data, next_step);
 		}
 		else if (size == -1) // nice, data is good. We can send this to ResponseMaker!!!
@@ -53,7 +107,9 @@ bool Executor::receiveRequest(pollfd &sock) {
 //			// types of error. 1) Connection error 2) Wrong http-header 3) Wrong data-size 4) limit 5) ???
 //		}
 	}
-	this->_data = const_cast<char*>(data);
+	std::cout << header.str() << std::endl;
+
+//	this->_data = const_cast<char*>(data);
 
 //////	 this code for check header correctness
 //	std::list<std::string>::iterator it = _header_fields.begin();
@@ -68,8 +124,8 @@ bool Executor::receiveRequest(pollfd &sock) {
 }
 
 bool Executor::executeMethod() {
-
 	bool res;
+
 
 	res = false;
 	if (_requestParser.getMethod() == "GET")
@@ -82,18 +138,22 @@ bool Executor::executeMethod() {
 }
 
 bool Executor::methodDelete() {
-
 	return (false);
 }
 
 bool Executor::methodPost() {
 	return (false);
-
 }
 
 bool Executor::methodGet() {
 	return (false);
 }
+
+Config::Host::Location &selectLocation(std::string uri)
+{
+
+}
+
 
 bool Executor::sendResponse(pollfd &sock) {
 	std::string 		response2;
@@ -114,12 +174,12 @@ bool Executor::sendResponse(pollfd &sock) {
 	while ((s = read(fd, &c, 1)) > 0) {
 		content2.write(&c, 1);
 	}
-//	content << "<title>Test C++ HTTP Server</title>\n"
-//			<< "<h1>Test Server!</h1>\n"
-//			<< "<p>This is body of the test page...</p>\n"
-//			<< "<h2>Request headers</h2>\n"
-//			<< "<pre>" << _data << "</pre>\n"
-//			<< "<em><small>Test C++ Http Server</small></em>\n"
+	content << "<title>Test C++ HTTP Server</title>\n"
+			<< "<h1>Test Server!</h1>\n"
+			<< "<p>This is body of the test page...</p>\n"
+			<< "<h2>Request headers</h2>\n"
+			<< "<pre>" << _data << "</pre>\n"
+			<< "<em><small>Test C++ Http Server</small></em>\n";
 //			<< content2 << "\n";
 //	content << content2;
 
@@ -127,13 +187,13 @@ bool Executor::sendResponse(pollfd &sock) {
 	// Формируем весь ответ вместе с заголовками
 	response << "HTTP/1.1 200 OK\r\n"
 			 << "Version: HTTP/1.1\r\n"
-			 << "Content-Type: image/jpeg\r\n"
+			 << "Content-Type: text/html\r\n"
 			 << "Connection: keep-alive\r\n"
-			 << "Content-Length: " << content2.str().length()
+			 << "Content-Length: " << content.str().length()
 			 //			 << "Transfer-Encoding: chunked"
 			 << "\r\n\r\n"
 			 //			 << "5059\r\n"
-			 << content2.str();
+			 << content.str();
 //			 << "0" << "\r\n\r\n";
 	response2 = response.str();
 	if (send(sock.fd, response2.c_str(), response2.length(), 0) < 0)

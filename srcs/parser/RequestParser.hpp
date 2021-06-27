@@ -26,7 +26,7 @@ class RequestParser
 {
 	private:
 
-		Config				_config;
+		Config						_config;
 		std::string					_method;
 		std::string 				_uri;
 		std::string 				_connection;

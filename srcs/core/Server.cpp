@@ -15,7 +15,7 @@
 Server::Server(char *config): _configParser(config) {
 	std::vector<Config::Host> hosts;
 	_fds = new pollfd[1];
-	_fds[0].fd = -2;
+	_fds[0].fd = END_OF_POLLFD_ARRAY;
 	_fds[0].events = 0;
 	_fds_size = 0;
 	_nfds = 0;
@@ -93,7 +93,7 @@ void Server::recvRequest_sendResponse(pollfd &sock) {
 	isSuccess = executor.receiveRequest(sock);
 	if (!isSuccess) {
 		close(sock.fd);
-		sock.fd = -1;
+		sock.fd = VOID_POLLFD;
 		sock.revents = 0;
 		sock.events = 0;
 		return ;
@@ -157,15 +157,16 @@ void Server::acceptConnection(pollfd lsocket, int i) {
 				<< std::endl;
 	std::cout   << paintString("================================", 0, BWHITE, 0) << std::endl;
 	addSocket(new_client, REQUEST_RESPONSE);
+
 }
 
 void Server::addSocket(int sock, short event) {
 	int i;
 
 	_nfds = sock;
-	for(i = 0; _fds[i].fd != -2; i++)
+	for(i = 0; _fds[i].fd != END_OF_POLLFD_ARRAY; i++)
 	{
-		if (_fds[i].fd == -1)
+		if (_fds[i].fd == VOID_POLLFD)
 		{
 			_fds[i].fd = sock;
 			_fds[i].events = event;
@@ -179,8 +180,11 @@ void Server::addSocket(int sock, short event) {
 
 void Server::deleteSocket(pollfd &socket) {
 	std::cout << "\033[0;93mКлиент " <<  socket.fd  << " разорвал соединение!\033[0m" << std::endl;
+	std::cout << socket.events << std::endl;
+	std::cout << socket.revents << std::endl;
+
 	close(socket.fd);
-	socket.fd = -1;
+	socket.fd = VOID_POLLFD;
 	socket.events = 0;
 	socket.revents = 0;
 }
@@ -192,15 +196,18 @@ void Server::expandPoll() {
 
 	_fds_size += 100;
 	tmp = new pollfd[_fds_size];
-	tmp[_fds_size - 1].fd = -2;
-	for(i = 0; _fds[i].fd != -2; i++)
+	tmp[_fds_size - 1].fd = END_OF_POLLFD_ARRAY;
+	for(i = 0; _fds[i].fd != END_OF_POLLFD_ARRAY; i++)
 	{
 		tmp[i].fd = _fds[i].fd;
 		tmp[i].events = _fds[i].events;
+		tmp[i].revents = 0;
 	}
-	for(int a = i; tmp[a].fd != -2; a++)
+	for(int a = i; tmp[a].fd != END_OF_POLLFD_ARRAY; a++)
 	{
-		tmp[a].fd = -1;
+		tmp[a].fd = VOID_POLLFD;
+		tmp[a].events = 0;
+		tmp[a].revents = 0;
 	}
 	tmp2 = _fds;
 	_fds = tmp;

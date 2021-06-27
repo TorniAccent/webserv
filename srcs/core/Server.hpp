@@ -32,13 +32,15 @@
 # include <sstream>
 # include <fstream>
 # include <map>
-# include "../parser/RequestParser.hpp"
-# include "../parser/ConfigParser.hpp"
-# include "../response/Executor.hpp"
+# include "RequestParser.hpp"
+# include "ConfigParser.hpp"
+# include "Executor.hpp"
 # include <netinet/in.h>
 //# define BUFFER_SIZE		1500
-# define NEW_CONNECTION		POLLRDNORM
-# define REQUEST_RESPONSE	(POLLIN | POLLOUT)
+# define NEW_CONNECTION			POLLRDNORM
+# define REQUEST_RESPONSE		(POLLIN | POLLOUT)
+# define END_OF_POLLFD_ARRAY	(-2)
+# define VOID_POLLFD			(-1)
 # define BLACK		30
 # define RED		31
 # define GREEN		32
