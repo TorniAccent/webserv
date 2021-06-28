@@ -13,7 +13,7 @@ using std::cout;
 std::string noComment(std::fstream &fin);
 bool noSemi(std::fstream &fin, std::string &tmp);
 size_t findField(std::string &str, const char *ref);
-std::vector<std::string> split(std::string &str, const char *ref);
+std::vector<std::string> split(std::string &str);
 
 class Config {
 public:
