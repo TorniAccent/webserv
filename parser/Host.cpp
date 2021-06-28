@@ -54,7 +54,7 @@ Config::Host::Host(std::fstream &fin) {
 	/// location
 	{
 		for (std::string tmp; std::getline(fin, tmp), tmp != "}"; ) {
-			locations.push_back(Location(fin));
+			locations.push_back(Location(fin, address, indexes, limit, errorPages));
 		}
 	}
 }

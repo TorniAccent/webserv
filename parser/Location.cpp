@@ -1,6 +1,12 @@
 #include "ConfigParser.hpp"
 
-Config::Host::Location::Location(std::fstream &fin)
+Config::Host::Location::Location(std::fstream &fin,
+								 std::pair<std::string, int> &address,
+								 std::vector<std::string> &indexes,
+								 size_t &limit,
+								 std::string &errorPages)
+								 : address(address), indexes(indexes),
+								   limit(limit), errorPages(errorPages)
 { // todo: make read fields optional
 	std::string str;
 	std::vector<std::string> vec;

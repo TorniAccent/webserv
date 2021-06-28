@@ -53,7 +53,11 @@ private:
 
 class Config::Host::Location {
 public:
-	explicit Location(std::fstream &fin);
+	explicit Location(std::fstream &fin,
+					  std::pair<std::string, int> &address,
+					  std::vector<std::string> &indexes,
+					  size_t &limit,
+					  std::string &errorPages);
 ////
 	std::string getWeb() const;
 	std::string getRoot() const;
@@ -62,6 +66,10 @@ public:
 	std::vector<std::string> getIndexes() const;
 	std::string getCGI() const;
 private:
+	std::pair<std::string, int> address;
+	size_t limit;
+	std::string errorPages;
+////
 	std::string web;
 	std::string root;
 	std::vector<std::string> methods;
