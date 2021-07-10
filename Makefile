@@ -38,7 +38,7 @@ OBJS		= $(addprefix $(OBJDIR)/, $(patsubst %.cpp,%.o,$(filter %.cpp,$(FILES_TMP)
 OBJS_SUB	= $(addprefix $(OBJDIR)/, parser core response)
 
 BUFFER_SIZE = -D BUFFER_SIZE=100
-FLAGS = -Wno-unused-variable #-Wall -Wextra -Werror
+FLAGS = -Wno-unused-variable#-Wall -Wextra -Werror
 
 all: $(NAME)
 

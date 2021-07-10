@@ -24,6 +24,7 @@
 # include <unistd.h>
 # include <fcntl.h>
 # include <fstream>
+# define MAX_HEADER_SIZE 8192
 
 class Executor {
 	public:
@@ -33,25 +34,29 @@ class Executor {
 		bool sendResponse(pollfd &sock); // send response
 
 	private:
+		typedef Config::Host::Location Location;
+
 		int						_error;
-		size_t 					_body_size;
+		pollfd					_sock;
 		size_t					_max_body_size;
 		char					*_data;
 		Config					&_configParser;
 		RequestParser			&_requestParser;
-
-		// will remove
-		bool		collectHeader(const char *data);
-		bool		collectBody(const char *data);
-		bool 		collectRequest(const char *data, bool &next_step);
-		const char 	*strjoin(const char* s1, const char *s2) const;
-
-		size_t 					_content_length; // 0 if absent
-		bool 					_is_chunked;
-		std::list<std::string>	_header_fields;
 		size_t 					_header_size;
 		std::stringstream 		_body;
+		int 					_post;
+		Location 				*_location;
 
+		//add
+		bool 		splitHeader(std::vector<std::string> &main_strings, std::string &tmp);
+		int			selectLocation(std::string uri);
+		int 		getError();
+		int 		readChunkedBody();
+		int 		readFixBody(size_t	content_length);
+		int 		selectFunction(std::string content_type);
+		int			postMultiPartFD();
+		int 		postApplicationXWFU();
+		int 		writeToFile(std::string filename, char *data, size_t size);
 		//core
 		bool 		methodDelete();
 		bool 		methodPost();

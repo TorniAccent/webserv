@@ -12,14 +12,13 @@
 
 #include "Server.hpp"
 
-Server::Server(char *config): _configParser(config) {
+Server::Server(char *config): _configParser(config), _listen() {
 	std::vector<Config::Host> hosts;
 	_fds = new pollfd[1];
 	_fds[0].fd = END_OF_POLLFD_ARRAY;
 	_fds[0].events = 0;
 	_fds_size = 0;
 	_nfds = 0;
-
 	hosts = _configParser.getHosts();
 	std::vector<Config::Host>::iterator it;
 
@@ -80,17 +79,19 @@ void Server::findEvent(int events) {
 
 void Server::recvRequest_sendResponse(pollfd &sock) {
 	RequestParser	requestParser(_configParser);
-	Executor executor(_configParser, requestParser);
+	Executor		executor(_configParser, requestParser);
 	std::string 	response;
 	bool 			isSuccess;
 
 	//RequestParser ResponseMaker >> Executor
+
 
 	//executor.receiveRequest(sock); //bool
 	//executor.executeMethod(); //bool
 	//executor.sendResponse(sock); //bool
 
 	isSuccess = executor.receiveRequest(sock);
+	executor.executeMethod();
 	if (!isSuccess) {
 		close(sock.fd);
 		sock.fd = VOID_POLLFD;
@@ -98,6 +99,7 @@ void Server::recvRequest_sendResponse(pollfd &sock) {
 		sock.events = 0;
 		return ;
 	}
+//	std::cout << "bye" << std::endl;
 	executor.sendResponse(sock);
 }
 
@@ -136,6 +138,9 @@ void Server::acceptConnection(pollfd lsocket, int i) {
 	socklen_t			len;
 	struct sockaddr		*base;
 	struct sockaddr_in	inet = {};
+	struct timeval timeout;
+	timeout.tv_sec = 5;
+	timeout.tv_usec = 0;
 
 	lsocket.revents = 0;
 	base = reinterpret_cast<struct sockaddr *>(&inet);
@@ -146,6 +151,7 @@ void Server::acceptConnection(pollfd lsocket, int i) {
 		throw std::strerror(errno);
 	if (fcntl(new_client, F_SETFL, O_NONBLOCK) < 0)
 		throw std::strerror(errno);
+
 
 	std::cout   << paintString("================================", 0, BWHITE, 0) << std::endl;
 	std::cout	<< paintString("[NEW_CLIENT]", 1, GREEN, 0)

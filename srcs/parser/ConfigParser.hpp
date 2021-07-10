@@ -41,6 +41,7 @@ public:
 	std::string getErrorPages() const;
 		// std::vector<int> errorCode, std::string pagePass
 	std::vector<Location> getLocations() const;
+	std::vector<std::string> getServerNames() const;
 
 private:
 	std::pair<std::string, int> address;
