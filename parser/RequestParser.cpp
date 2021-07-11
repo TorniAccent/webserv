@@ -33,44 +33,54 @@ static std::pair<std::string, std::string> colon_split(std::string const &line) 
 	return std::pair<std::string, std::string>(first, second);
 }
 
-Request::Request(std::vector<std::string> lines) : error(0) {
+RequestParser::RequestParser(std::vector<std::string> lines) : _error(0) {
 	size_t tmp;
 
 	if ((tmp = lines[0].find(' ', 0)) == npos)
-		error = 1;
+		_error = 1;
 
 	if ()
+		;
 	for (std::vector<std::string>::iterator it = lines.begin() + 1;
-								!error && it != lines.end(); it++) {
+		 !_error && it != lines.end(); it++) {
 		if (colon_split(*it) == std::pair<std::string, std::string>())
-			error = 400;
+			_error = 400;
 	}
 
 }
 
-//int Request::fill() {
-//	int flag = 0;
-//	/// 503
-//	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); it++) {
-//		if (it->find("Retry-After") != npos)
-//			return 503;
-//		if (it->find("Authorization") != npos)
-//			flag |= 1;
-//		if (it->find("Content-Type") != npos || it->find("Content-Encoding") != npos)
-//			flag |= 2;
-//	}
-//	flag ^= 1;
-//	std::vector<std::string> vec;
-//	/// 1st line
-//	{
-//		vec = split(lines[0]);
-//		if (vec[1].length() > )
-//
-//		_method = vec[0];
-//		_requestURI = vec[1];
-//		_httpVersion = vec[2];
-//	}
-//}
+std::string		RequestParser::getBoundary() const {
+	return (_boundary);
+}
+
+std::string		RequestParser::getMethod() const {
+	return (_method);
+}
+
+std::string 	RequestParser::getURI() const {
+	return ("/images/favicon.ico");
+}
+
+std::string 	RequestParser::getContentType() const {
+	return ("multipart/form-data");
+}
+
+int 			RequestParser::getError() const {
+	return (400);
+}
+
+size_t			RequestParser::getContentLength() const {
+	return (_content_length);
+}
+
+RequestParser&	RequestParser::operator=(const RequestParser &r) {
+	return (*this);
+}
+
+std::pair<std::string, int> RequestParser::getHost() const {
+	return (std::make_pair("MailRu", 2021));
+}
+
 
 
 #pragma clang diagnostic pop
