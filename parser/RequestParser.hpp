@@ -21,19 +21,18 @@ std::vector<std::string>	split(std::string &str);
 class RequestParser {
 public:
 	RequestParser(std::vector<std::string> lines);
-	bool 		parseHeader(std::vector<std::string> &header);
-	std::string getMethod(void) const;
-	std::string getContentType(void) const;
-	std::string getURI(void) const;
-	int 		getError(void) const;
-	size_t 		getContentLength() const;
-	std::string getBoundary(void) const;
-	std::pair<std::string, int> getHost(void) const;
+//	bool 		parseHeader(std::vector<std::string> &header);
+//	std::string getMethod(void) const;
+//	std::string getContentType(void) const;
+//	std::string getURI(void) const;
+//	int 		getError(void) const;
+//	size_t 		getContentLength() const;
+//	std::string getBoundary(void) const;
+//	std::pair<std::string, int> getHost(void) const;
 
 private:
 	int _error;
-//	std::string method;
-//	std::string uri;
+	std::map<std::string, std::string> _headers;
 
 	Config						_config;
 	std::string					_method;
@@ -49,7 +48,6 @@ private:
 	RequestParser();
 	RequestParser(RequestParser const &copy);
 
-	std::map<std::string, std::string> headers;
 };
 
 #endif //WEBSERV_REQUEST_PARSER_HPP

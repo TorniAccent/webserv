@@ -1,4 +1,5 @@
 #include "parser/ConfigParser.hpp"
+#include "parser/RequestParser.hpp"
 
 int main()
 {
@@ -6,6 +7,11 @@ int main()
 	try
 	{
 		Config config("file");
+
+		std::vector<std::string> sample;
+		sample.push_back("GET https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages HTTP/1.1");
+		sample.push_back("aaa: bbb lkemrv gproktb eptm");
+		RequestParser request(sample);
 		std::cout << npos << std::endl;
 	}
 	catch (const char *e)
