@@ -54,17 +54,9 @@ Config::Host::Host(std::fstream &fin) {
 	/// location
 	{
 		for (std::string tmp; std::getline(fin, tmp), tmp != "}"; ) {
-			locations.push_back(Location(fin));
+			locations.push_back(Location(fin, address, indexes, limit, errorPages));
 		}
 	}
-}
-
-std::vector<std::string> Config::Host::getServerNames() const {
-	std::vector<std::string> tmp;
-	tmp.push_back("MailRu");
-	tmp.push_back("Yandex");
-	tmp.push_back("test");
-	return tmp;
 }
 
 std::pair<std::string, int> Config::Host::getAddress() const {

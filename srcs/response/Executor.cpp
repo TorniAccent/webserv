@@ -85,37 +85,56 @@ bool Executor::receiveRequest(pollfd &sock) {
 //		}
 	}
 
-//	std::vector<std::string>::iterator it = splitted_header.begin();
-//	while (it != splitted_header.end())
-//	{
-//		std::cout << *it << "|" << std::endl;
-//		it++;
-//	}
+	std::vector<std::string>::iterator it = splitted_header.begin();
+	while (it != splitted_header.end())
+	{
+		std::cout << *it << "|" << std::endl;
+		it++;
+	}
 //	std::cout << _requestParser.getBoundary() << "bbb" << std::endl;
-//	std::cout << "---------------" <<std::endl;
+	std::cout << "---------------" <<std::endl;
 	return (true);
 }
 
 bool Executor::executeMethod() {
 	bool res;
 	std::string method;
-	method = _requestParser.getMethod();
-	selectLocation(_requestParser.getURI());
+	int	check;
+	int obj;
+
 	res = false;
+	method = _requestParser.getMethod();
+	check = selectLocation(_requestParser.getURI());
+
+	if (!check)
+		obj = getResourceType("config");
+	else
+		return (false);
+
+	if (!obj)
+		std::cout << "Magic object" << std::endl;
+	else if (obj == EXECUTABLE_FILE)
+		std::cout << "EXECUTABLE" << std::endl;
+	else if (obj == FILE)
+		std::cout << "FILE" << std::endl;
+	else
+		std::cout << "DIRECTORY" << std::endl;
+//		executeCGI(method);
+
 	if (method == "GET")
-		res = methodGet();
+		res = methodGet(obj);
 	else if (method == "POST")
-		res = methodPost();
+		res = methodPost(obj);
 	else if (method == "DELETE")
-		res = methodDelete();
+		res = methodDelete(obj);
 	return (res);
 }
 
-bool Executor::methodDelete() {
+bool Executor::methodDelete(int obj) {
 	return (false);
 }
 
-bool Executor::methodPost() {
+bool Executor::methodPost(int obj) {
 	size_t		content_length;
 	std::string	content_type;
 
@@ -137,7 +156,7 @@ bool Executor::methodPost() {
 	return (true);
 }
 
-bool Executor::methodGet() {
+bool Executor::methodGet(int obj) {
 //	getLocation
 //	_configParser.
 
@@ -192,10 +211,8 @@ int Executor::readFixBody(size_t content_length) {
 //			return (400);
 		}
 	}
-//	(this->*postType)(buffer, size);
 	return (0);
 }
-
 
 int Executor::selectFunction(std::string content_type) {
 	int res;
@@ -208,8 +225,8 @@ int Executor::selectFunction(std::string content_type) {
 	return (res);
 }
 
-
 int Executor::postMultiPartFD() {
+
 	return (0);
 }
 
@@ -240,7 +257,7 @@ int Executor::selectLocation(std::string uri)
 	it = host.begin();
 	while (it != host.end())			//перебираем сервера из конфига
 	{
-		tmp = it->getServerNames();
+//		tmp = it->getServerNames();
 		it2 = tmp.begin();
 		while (it2 != tmp.end())		//перебираем server_names серверов из конфига
 		{
@@ -303,6 +320,48 @@ bool Executor::splitHeader(std::vector<std::string> &main_strings, std::string &
 	return (true);
 }
 
+int	Executor::getResourceType(std::string uri) {
+	struct stat buf;
+	int			type;
+	int 		check;
+	int 		mode;
+	std::string chmod;
+
+	type = 0;
+	check = stat(uri.c_str(), &buf);
+	if (check == -1)
+		return (0);
+
+	mode = buf.st_mode;
+	chmod = std::to_string(toOctal(mode));
+	if (S_ISREG(mode))
+	{
+		type = FILE;
+		for (int i = 3; i != 6; i++)
+			if (((chmod[i] - 48) % 2) != 0)
+				type = EXECUTABLE_FILE;
+	}
+	else if (S_ISDIR(mode))
+		type = DIRECTORY;
+	return (type);
+}
+
+int	Executor::toOctal(int decimal) {
+	int octal;
+	int i;
+	int tmp;
+
+	octal = 0;
+	i = 1;
+	while (decimal != 0)
+	{
+		tmp = decimal % 8;
+		decimal = decimal / 8;
+		octal = octal + (tmp * i);
+		i = i * 10;
+	}
+	return (octal);
+}
 
 bool Executor::sendResponse(pollfd &sock) {
 	std::string 		response2;

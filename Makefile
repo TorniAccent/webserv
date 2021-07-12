@@ -12,7 +12,7 @@
 
 NAME		= server
 
-PARSER		= Config.cpp ConfigParser.hpp Host.cpp Location.cpp utils.cpp RequestParser.cpp RequestParser.hpp #CParser.cpp CParser.hpp
+PARSER		= Config.cpp ConfigParser.hpp Host.cpp Location.cpp utils.cpp RequestParser.cpp RequestParser.hpp
 CORE		= Server.cpp Server.hpp
 RESPONSE	= Executor.cpp Executor.hpp
 MAIN		= webserv.cpp

@@ -1,14 +1,23 @@
 #include "ConfigParser.hpp"
 
-Config::Host::Location::Location(std::fstream &fin)
+Config::Host::Location::Location(std::fstream &fin,
+								 std::pair<std::string, int> &address,
+								 std::vector<std::string> &indexes,
+								 size_t &limit,
+								 std::string &errorPages)
+								 : address(address), indexes(indexes),
+								   limit(limit), errorPages(errorPages)
 { // todo: make read fields optional
 	std::string str;
 	std::vector<std::string> vec;
 	/// location
 	{
 		std::getline(fin, str);
-		if (!(vec = split(str, "location")).empty()) {
-			web = vec.front();
+		vec = split(str);
+		if (vec[0] != "location")
+			throw "location";
+		if (vec.size() != 1) {
+			web = vec[1];
 		}
 	}
 	/// {
@@ -18,36 +27,51 @@ Config::Host::Location::Location(std::fstream &fin)
 	/// root
 	{
 		std::getline(fin, str);
-		if (!(vec = split(str, "root")).empty()) {
-			root = vec.front();
+		vec = split(str);
+		if (vec[0] != "root")
+			throw "root";
+		if (vec.size() != 1) {
+			root = vec[1];
 		}
 	}
 	/// methods
 	{
 		std::getline(fin, str);
-		if (!(vec = split(str, "methods")).empty()) {
+		vec = split(str);
+		if (vec[0] != "methods")
+			throw "methods";
+		if (vec.size() != 1) {
 			methods = vec;
 		}
 	}
 	/// autoindex
 	{
 		std::getline(fin, str);
-		if (!(vec = split(str, "autoindex")).empty()) {
-			listing = (vec.front() == "on");
+		vec = split(str);
+		if (vec[0] != "autoindex")
+			throw "autoindex";
+		if (vec.size() != 1) {
+			listing = (vec[1] == "on");
 		}
 	}
 	/// index
-	{
+	{ // todo: make index read make sense
 		std::getline(fin, str);
-		if (!(vec = split(str, "index")).empty()) {
+		vec = split(str);
+		if (vec[0] != "index")
+			throw "index";
+		if (vec.size() != 1) {
 			indexes = vec;
 		}
 	}
 	/// cgi
 	{
 		std::getline(fin, str);
-		if (!(vec = split(str, "cgi")).empty()) {
-			cgiFile = vec.front();
+		vec = split(str);
+		if (vec[0] != "cgi")
+			throw "cgi";
+		if (vec.size() != 1) {
+			cgiFile = vec[1];
 		}
 	}
 	std::getline(fin, str);

@@ -33,10 +33,7 @@ server
 	limit 4096;
 	error_pages /error_pages/;
 
-    tmp/1/2/favicon.ico
-    tmp/1/2/index.php
-
-	location /dir/:
+	location /dir/index.php:
 	{
 		root /root/;
 		methods GET POST DELETE;

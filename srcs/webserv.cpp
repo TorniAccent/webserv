@@ -12,14 +12,10 @@
 
 #include "core/Server.hpp"
 
-
 int main(int argc, char **argv)
 {
 
-	std::string t;
-
-	t = "Taraa 2021";
-	std::cout << t.substr(0, 2) << std::endl;
+//	std::cout << t.substr(0, 2) << std::endl;
 	if (argc > 2)
 	{
 		std::cout << "too many arguments6 max is 1" << std::endl;

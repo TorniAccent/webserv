@@ -24,7 +24,11 @@
 # include <unistd.h>
 # include <fcntl.h>
 # include <fstream>
+# include <sys/stat.h>
 # define MAX_HEADER_SIZE 8192
+# define EXECUTABLE_FILE 137
+# define FILE 666
+# define DIRECTORY 444
 
 class Executor {
 	public:
@@ -57,10 +61,13 @@ class Executor {
 		int			postMultiPartFD();
 		int 		postApplicationXWFU();
 		int 		writeToFile(std::string filename, char *data, size_t size);
+		int 		getResourceType(std::string uri);
+		int 		toOctal(int decimal);
 		//core
-		bool 		methodDelete();
-		bool 		methodPost();
-		bool 		methodGet();
+		bool 		executeCGI(std::string method);
+		bool 		methodDelete(int obj);
+		bool 		methodPost(int obj);
+		bool 		methodGet(int obj);
 };
 
 #endif

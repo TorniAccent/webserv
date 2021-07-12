@@ -13,7 +13,7 @@ using std::cout;
 std::string noComment(std::fstream &fin);
 bool noSemi(std::fstream &fin, std::string &tmp);
 size_t findField(std::string &str, const char *ref);
-std::vector<std::string> split(std::string &str, const char *ref);
+std::vector<std::string> split(std::string &str);
 
 class Config {
 public:
@@ -41,7 +41,6 @@ public:
 	std::string getErrorPages() const;
 		// std::vector<int> errorCode, std::string pagePass
 	std::vector<Location> getLocations() const;
-	std::vector<std::string> getServerNames() const;
 
 private:
 	std::pair<std::string, int> address;
@@ -54,7 +53,11 @@ private:
 
 class Config::Host::Location {
 public:
-	explicit Location(std::fstream &fin);
+	explicit Location(std::fstream &fin,
+					  std::pair<std::string, int> &address,
+					  std::vector<std::string> &indexes,
+					  size_t &limit,
+					  std::string &errorPages);
 ////
 	std::string getWeb() const;
 	std::string getRoot() const;
@@ -63,6 +66,10 @@ public:
 	std::vector<std::string> getIndexes() const;
 	std::string getCGI() const;
 private:
+	std::pair<std::string, int> address;
+	size_t limit;
+	std::string errorPages;
+////
 	std::string web;
 	std::string root;
 	std::vector<std::string> methods;

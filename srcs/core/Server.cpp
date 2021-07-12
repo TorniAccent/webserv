@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: swquinc <marvin@42.fr>                     +#+  +:+       +#+        */
+/*   By: mchantel <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/06/06 14:41:58 by swquinc           #+#    #+#             */
-/*   Updated: 2021/06/06 14:41:59 by swquinc          ###   ########.fr       */
+/*   Created: 2021/06/06 14:41:58 by mchantel           #+#    #+#             */
+/*   Updated: 2021/06/06 14:41:59 by mchantel          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ Server::Server(char *config): _configParser(config), _listen() {
 	}
 }
 
-
+//erijgnerijnfvioernfiovhneriougfhn
 Server::~Server() {
 	delete []_fds;
 }
@@ -151,7 +151,6 @@ void Server::acceptConnection(pollfd lsocket, int i) {
 		throw std::strerror(errno);
 	if (fcntl(new_client, F_SETFL, O_NONBLOCK) < 0)
 		throw std::strerror(errno);
-
 
 	std::cout   << paintString("================================", 0, BWHITE, 0) << std::endl;
 	std::cout	<< paintString("[NEW_CLIENT]", 1, GREEN, 0)

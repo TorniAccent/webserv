@@ -23,33 +23,20 @@ size_t findField(std::string &str, const char *ref) {
 	return n;
 }
 
-std::vector<std::string> split(std::string &str, const char *ref) {
-	if (size_t id = findField(str, ref)) {
-		size_t spc = str.find_first_of(" :;", id);
-		std::vector<std::string> ret;
-		for (size_t tmp = 0; ; ) {
-			if ((tmp = str.find_first_of(" :;", spc + 1)) == npos || str.find_first_of(" :;", spc + 1) + 1 == str.length()) {
-				ret.push_back(str.substr(spc + 1, tmp - (spc + 1)));
-				break;
-			} // last condition
-			tmp = spc;
-			spc = str.find_first_of(" :;", tmp + 1);
-			ret.push_back(str.substr(tmp + 1, spc - (tmp + 1)));
-		}
-		return ret;
+std::vector<std::string> split(std::string &str) {
+	size_t spc = str.find_first_not_of(" \t");
+	std::vector<std::string> ret;
+	ret.push_back(str.substr(spc, str.find_first_of(" :;", spc) - spc));
+	spc = str.find_first_of(" :;", spc);
+	for (size_t tmp; ; ) {
+		if ((tmp = str.find_first_of(" :;", spc + 1)) == npos || str.find_first_of(" :;", spc + 1) + 1 == str.length()) {
+			ret.push_back(str.substr(spc + 1, tmp - (spc + 1)));
+			break;
+		} // last condition
+		tmp = spc;
+		spc = str.find_first_of(" :;", tmp + 1);
+		ret.push_back(str.substr(tmp + 1, spc - (tmp + 1)));
 	}
-	return std::vector<std::string>();
+	return ret;
 }
 
-//std::vector<std::string> splitOld(std::string &str, const char *ref) {
-//	if (size_t id = findField(str, ref)) {
-//		size_t spc = id;
-//		std::vector<std::string> ret;
-//		for (size_t tmp = 0; (spc = str.find_first_of(" :;", spc + 1)) + 1 != str.length(); ) {
-//			tmp = str.find_first_of(" :;", spc + 1);
-//			ret.push_back(str.substr(spc + 1, tmp - (spc + 1)));
-//		}
-//		return ret;
-//	}
-//	return std::vector<std::string>();
-//}

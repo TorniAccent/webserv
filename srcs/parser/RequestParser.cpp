@@ -26,7 +26,7 @@ RequestParser::~RequestParser() {
 bool	RequestParser::parseHeader(std::vector<std::string> &header) {
 	int a;
 
-	std::cout << header.front() << std::endl;
+//	std::cout << header.front() << std::endl;
 	if (header.front().find("GET") != npos)
 		_method = "GET";
 	else if (header.front().find("POST") != npos)
