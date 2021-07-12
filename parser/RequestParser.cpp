@@ -39,8 +39,8 @@ RequestParser::RequestParser(std::vector<std::string> lines) : _error(0) {
 	if ((tmp = lines[0].find(' ', 0)) == npos)
 		_error = 1;
 
-	if ()
-		;
+//	if ()
+//		;
 	for (std::vector<std::string>::iterator it = lines.begin() + 1;
 		 !_error && it != lines.end(); it++) {
 		if (colon_split(*it) == std::pair<std::string, std::string>())
@@ -73,9 +73,9 @@ size_t			RequestParser::getContentLength() const {
 	return (_content_length);
 }
 
-RequestParser&	RequestParser::operator=(const RequestParser &r) {
-	return (*this);
-}
+//RequestParser&	RequestParser::operator=(const RequestParser &r) {
+//	return (*this);
+//}
 
 std::pair<std::string, int> RequestParser::getHost() const {
 	return (std::make_pair("MailRu", 2021));

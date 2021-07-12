@@ -2,6 +2,7 @@ server
 {
 	host 127.0.0.1;
 	port 80;
+	server_name google.com;
 	index index.html index.htm index.php;
 	limit 4096;
 	error_pages /error_pages/;
@@ -28,7 +29,8 @@ server
 server
 {
 	host 127.0.0.1;
-	port 80;
+	port 8080;
+	server_name google.com
 	index index.html index.htm index.php;
 	limit 4096;
 	error_pages /error_pages/;

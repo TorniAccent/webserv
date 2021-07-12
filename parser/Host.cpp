@@ -22,6 +22,13 @@ Config::Host::Host(std::fstream &fin) {
 		noSemi(fin, port);
 		address = std::pair<std::string, int>(host, std::stoi(port));
 	}
+	/// host port
+	{
+		throwIn(fin, "server_name");
+		std::string sn;
+		noSemi(fin, sn);
+		serverName = sn;
+	}
 	/// index
 	{
 		throwIn(fin, "index");
@@ -54,7 +61,7 @@ Config::Host::Host(std::fstream &fin) {
 	/// location
 	{
 		for (std::string tmp; std::getline(fin, tmp), tmp != "}"; ) {
-			locations.push_back(Location(fin, address, indexes, limit, errorPages));
+			locations.push_back(Location(fin, address, serverName, indexes, limit, errorPages));
 		}
 	}
 }
