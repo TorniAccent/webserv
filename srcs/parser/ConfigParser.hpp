@@ -44,6 +44,7 @@ public:
 
 private:
 	std::pair<std::string, int> address;
+	std::string serverName;
 	std::vector<std::string> indexes;
 	size_t limit;
 	std::string errorPages;
@@ -55,6 +56,7 @@ class Config::Host::Location {
 public:
 	explicit Location(std::fstream &fin,
 					  std::pair<std::string, int> &address,
+					  std::string &serverName,
 					  std::vector<std::string> &indexes,
 					  size_t &limit,
 					  std::string &errorPages);
@@ -67,6 +69,7 @@ public:
 	std::string getCGI() const;
 private:
 	std::pair<std::string, int> address;
+	std::string serverName;
 	size_t limit;
 	std::string errorPages;
 ////

@@ -2,6 +2,7 @@ server
 {
 	host 0.0.0.0;
 	port 1700;
+	server_name web.com;
 	index index.html index.htm index.php;
 	limit 4096;
 	error_pages /error_pages/;
@@ -29,6 +30,7 @@ server
 {
 	host 0.0.0.0;
 	port 2021;
+	server_name web2.com;
 	index index.html index.htm index.php;
 	limit 4096;
 	error_pages /error_pages/;

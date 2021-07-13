@@ -1,66 +1,54 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   RequestParser.hpp                                  :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: swquinc <marvin@42.fr>                     +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/06/19 16:43:26 by swquinc           #+#    #+#             */
-/*   Updated: 2021/06/19 16:43:27 by swquinc          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#ifndef WEBSERV_REQUEST_PARSER_HPP
+#define WEBSERV_REQUEST_PARSER_HPP
 
-#ifndef REQUESTPARSER_HPP
-# define REQUESTPARSER_HPP
 # include <iostream>
-# include "../parser/ConfigParser.hpp"
-# include <sys/socket.h>
-# include <poll.h>
+# include <fstream>
 # include <vector>
-# include <sstream>
-# include <string>
+# include <map>
+# include <cstring>
 # include <list>
-# include <unistd.h>
+# include "../parser/ConfigParser.hpp"
 
-class RequestParser
-{
-	private:
+using std::cout;
 
-		Config						_config;
-		std::string					_method;
-		std::string 				_uri;
-		std::string 				_connection;
-		std::list<std::string>		_accept;
-		std::string					_media_type;
-		std::string 				_charset;
-		size_t 						_content_length;
-		std::string 				_boundary;
-		std::pair<std::string, int>	_host;
+# define npos std::string::npos
 
-	public:
-		RequestParser();
-		explicit RequestParser(Config &configParser);
-		RequestParser &operator=(const RequestParser &r);
-		~RequestParser();
+class RequestParser {
+public:
+	explicit	RequestParser(Config &config);
+	bool 		parseHeader(std::vector<std::string> &header);
 
-		bool 		parseHeader(std::vector<std::string> &header);
-		std::string getMethod(void) const;
-		std::string getContentType(void) const;
-		std::string getURI(void) const;
-		int 		getError(void) const;
-		size_t 		getContentLength() const;
-		std::string getBoundary(void) const;
-		std::pair<std::string, int> getHost(void) const; // host and port из request
+	std::string getMethod() const;
+	std::string getURI() const;
+	int 		getError() const;
+
+	std::pair<std::string, int> getHost() const;
+	size_t 		getContentLength() const;
+	std::string getContentType() const;
+
+//	std::string getBoundary(void) const;
+
+
+private:
+	int _error;
+	std::map<std::string, std::string> _headers;
+
+	Config						_config;
+
+	std::string					_method;
+	std::string 				_uri;
+	std::pair<std::string, int>	_host;
+	size_t 						_content_length;
+	std::string					_content_type;
+
+	std::string 				_connection;
+	std::list<std::string>		_accept;
+	std::string 				_charset;
+	std::string 				_boundary;
+
+	RequestParser();
+	RequestParser(RequestParser const &copy);
 
 };
 
-//struct Request {
-//	std::map<std::string, std::string> headers;
-//	int parseHeader(std::vector<std::string>);
-//	std::string find(std::string key);
-//};
-
-//typedef headers.find tt
-/// tt("key") == "value";  tt("content_type")
-
-#endif
+#endif //WEBSERV_REQUEST_PARSER_HPP
