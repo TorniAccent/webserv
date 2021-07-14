@@ -12,9 +12,9 @@
 // 413 - * useful load is too large
 /// ---
 
-/// 404
-/// 410
-/// 429
+// 404
+// 410
+// 429
 
 
 static std::pair<std::string, std::string> colon_split(std::string const &line) {

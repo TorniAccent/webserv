@@ -85,7 +85,6 @@ void Server::recvRequest_sendResponse(pollfd &sock) {
 
 	//RequestParser ResponseMaker >> Executor
 
-
 	//executor.receiveRequest(sock); //bool
 	//executor.executeMethod(); //bool
 	//executor.sendResponse(sock); //bool
@@ -151,6 +150,11 @@ void Server::acceptConnection(pollfd lsocket, int i) {
 		throw std::strerror(errno);
 	if (fcntl(new_client, F_SETFL, O_NONBLOCK) < 0)
 		throw std::strerror(errno);
+
+	struct sockaddr_in addr = {};
+	socklen_t size = sizeof(addr);
+	getsockname(new_client, (struct sockaddr*)&addr, &size);
+	std::cout << inet_ntoa(addr.sin_addr) << std::endl;
 
 	std::cout   << paintString("================================", 0, BWHITE, 0) << std::endl;
 	std::cout	<< paintString("[NEW_CLIENT]", 1, GREEN, 0)

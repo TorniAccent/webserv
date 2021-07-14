@@ -25,6 +25,7 @@
 # include <fcntl.h>
 # include <fstream>
 # include <sys/stat.h>
+# include <sys/wait.h>
 # define MAX_HEADER_SIZE 8192
 # define EXECUTABLE_FILE 137
 # define FILE 666
@@ -63,6 +64,8 @@ class Executor {
 		int 		writeToFile(std::string filename, char *data, size_t size);
 		int 		getResourceType(std::string uri);
 		int 		toOctal(int decimal);
+		std::string getInterpreter(std::string uri);
+		char 		**assembleEnv();
 		//core
 		bool 		executeCGI(std::string method);
 		bool 		methodDelete(int obj);

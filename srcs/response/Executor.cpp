@@ -97,36 +97,34 @@ bool Executor::receiveRequest(pollfd &sock) {
 }
 
 bool Executor::executeMethod() {
-	bool res;
+	bool 		res;
 	std::string method;
-	int	check;
-	int obj;
+	int			check;
+	int 		objType;
 
 	res = false;
 	method = _requestParser.getMethod();
 	check = selectLocation(_requestParser.getURI());
-
 	if (!check)
-		obj = getResourceType("config");
+		objType = getResourceType("config");
 	else
 		return (false);
 
-	if (!obj)
+	if (!objType)
 		std::cout << "Magic object" << std::endl;
-	else if (obj == EXECUTABLE_FILE)
-		std::cout << "EXECUTABLE" << std::endl;
-	else if (obj == FILE)
+	else if (objType == EXECUTABLE_FILE)
+		executeCGI(method);
+	else if (objType == FILE)
 		std::cout << "FILE" << std::endl;
 	else
 		std::cout << "DIRECTORY" << std::endl;
-//		executeCGI(method);
 
 	if (method == "GET")
-		res = methodGet(obj);
+		res = methodGet(objType);
 	else if (method == "POST")
-		res = methodPost(obj);
+		res = methodPost(objType);
 	else if (method == "DELETE")
-		res = methodDelete(obj);
+		res = methodDelete(objType);
 	return (res);
 }
 
@@ -157,10 +155,127 @@ bool Executor::methodPost(int obj) {
 }
 
 bool Executor::methodGet(int obj) {
-//	getLocation
-//	_configParser.
+	if (_requestParser.getError() != 0) //FIXME отравлять ошибку клиенту
+		return (false);
+//	_configParser.get
+	return (true);
+}
 
-	return (false);
+bool Executor::executeCGI(std::string method) {
+	pid_t		pid;
+	int			status;
+	int 		exit_status;
+	char 		**object_to_execute;
+	char 		**env;
+	std::string	interpreter;
+
+	// 1) нужно определить расширение cgi. От этого зависит первый аргумент execve. DONE
+	// 2) во второй аргумент execve нужно положить путь к запускаемому объекту
+	// 3) нужно собрать переменные окружение в двумерный массив по типу ключ-значение
+	// 4) если post, то нужно передать данные cgi программе через stdin
+
+	pid = fork();
+	if (pid == -1)
+		return (false);
+	else if (pid == 0) // if fork return 0, it's mean that it's child process
+	{
+		object_to_execute = new char* [2];
+		object_to_execute[1] = NULL;
+		interpreter = getInterpreter(_requestParser.getURI());
+		if (interpreter.empty()) {
+			object_to_execute[0] = NULL;
+			if (_error == 510) {
+				delete object_to_execute;
+				exit(510);
+			}
+		}
+		else
+			object_to_execute[0] = const_cast<char*>(interpreter.c_str());
+		env = assembleEnv();
+		if (execve(interpreter.c_str(), object_to_execute, NULL) == -1)
+		{
+			if (errno == ENOENT)
+				exit(501);
+		}
+	}
+	else
+	{
+		waitpid(pid, &status, WUNTRACED);
+		if (WIFEXITED(status)) // если вернет 0, то значит, что  cgi-программа завершилась аварийно.
+			exit_status = WEXITSTATUS(status);
+		else
+			exit_status = -999;
+		if (exit_status == 510 || exit_status == 501) {
+			_error = exit_status;
+			return (false);
+		}
+		else if (exit_status == -999){
+			_error = 500;
+			return (false);
+		}
+	}
+	return (true);
+	std::cout << "EXECUTABLE" << std::endl;
+}
+
+char	**Executor::assembleEnv() {
+	char **res = new char* [25];
+	std::vector<std::string> tmp(28, "");
+
+	res[25] = NULL;
+	tmp[0]	= "AUTH_TYPE=";
+	tmp[1]	= "CONTENT_LENGTH=" + std::to_string(_requestParser.getContentLength());
+	tmp[2]	= "CONTENT_TYPE=" + _requestParser.getContentType();
+	tmp[3]	= "GATEWAY_INTERFACE=";
+	tmp[4]	= "HTTP_ACCEPT=";
+	tmp[5]	= "HTTP_ACCEPT_CHARSET=";
+	tmp[6]	= "HTTP_ACCEPT_ENCODING=";
+	tmp[7]	= "HTTP_ACCEPT_LANGUAGE=";
+	tmp[8]	= "HTTP_FORWARDED=";
+	tmp[9]	= "HTTP_HOST=";
+	tmp[10] = "HTTP_PROXY_AUTHORIZATION=";
+	tmp[11] = "HTTP_USER_AGENT=";
+	tmp[12] = "PATH_INFO=";
+	tmp[13] = "PATH_TRANSLATED=";
+	tmp[14] = "QUERY_STRING=";
+	tmp[15] = "REMOTE_ADDR=";
+	tmp[17] = "REMOTE_HOST=";
+	tmp[18] = "REQUEST_METHOD=" + _requestParser.getMethod();
+	tmp[19] = "SCRIPT_NAME=" + _requestParser.getURI();
+	tmp[20] = "SERVER_NAME=" + _requestParser.getHost().first;
+	tmp[21] = "SERVER_PORT=" + std::to_string(_requestParser.getHost().second);
+	tmp[22] = "SERVER_PROTOCOL=HTTP/1.1";
+	tmp[23] = "SERVER_SOFTWARE=Webserv/1";
+	tmp[24] = "HTTP_COOKIE=";
+
+	for (int i = 0; res[i] != NULL; i++)
+		res[i] = const_cast<char*>(tmp[i].c_str());
+	return (res);
+}
+
+std::string Executor::getInterpreter(std::string uri) {
+	size_t		check;
+	std::string	extension;
+	std::string res;
+
+	extension = "";
+	res = "";
+	check = uri.find_last_of('.');
+	if (check != npos)
+		extension = uri.substr(check, uri.length() - check);
+	else
+		return (res);
+	if (extension == ".py")
+		res = "python";
+	else if (extension == ".sh")
+		res = "sh";
+	else if (extension == ".pl")
+		res = "perl";
+	else if (extension == ".rb")
+		res = "ruby";
+	else
+		_error = 510;
+	return (res);
 }
 
 int	Executor::readChunkedBody() {
