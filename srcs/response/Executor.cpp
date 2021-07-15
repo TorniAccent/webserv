@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+
 #include "Executor.hpp"
 
 /*
@@ -154,7 +155,7 @@ bool Executor::methodPost(int obj) {
 	return (true);
 }
 
-bool Executor::methodGet(int obj) {
+bool Executor::methodGet(int obj) { // формировать body
 	if (_requestParser.getError() != 0) //FIXME отравлять ошибку клиенту
 		return (false);
 //	_configParser.get
@@ -219,34 +220,47 @@ bool Executor::executeCGI(std::string method) {
 }
 
 char	**Executor::assembleEnv() {
-	char **res = new char* [25];
-	std::vector<std::string> tmp(28, "");
+	char 						**res;
+	std::vector<std::string>	tmp(28, "");
+	std::string					uri;
+	size_t						i;
+	struct sockaddr_in			addr = {};
+	std::string 				client_ip;
+	socklen_t 					size;
 
+	res = new char* [25];
+	size = sizeof(addr);
+	getpeername(_sock.fd, (struct sockaddr*)&addr, &size);
+	client_ip.append(inet_ntoa(addr.sin_addr));
+	client_ip.append(":" + std::to_string(addr.sin_port));
+//	setpeeropt(new_client, IPPROTO_IP, )
+	uri = _requestParser.getURI();
+	i = uri.find_last_of('/') + 1;
 	res[25] = NULL;
 	tmp[0]	= "AUTH_TYPE=";
 	tmp[1]	= "CONTENT_LENGTH=" + std::to_string(_requestParser.getContentLength());
 	tmp[2]	= "CONTENT_TYPE=" + _requestParser.getContentType();
-	tmp[3]	= "GATEWAY_INTERFACE=";
-	tmp[4]	= "HTTP_ACCEPT=";
-	tmp[5]	= "HTTP_ACCEPT_CHARSET=";
-	tmp[6]	= "HTTP_ACCEPT_ENCODING=";
-	tmp[7]	= "HTTP_ACCEPT_LANGUAGE=";
+	tmp[3]	= "GATEWAY_INTERFACE=CGI/1.1";
+	tmp[4]	= "HTTP_ACCEPT="; //_requestParser.getAccept();
+	tmp[5]	= "HTTP_ACCEPT_CHARSET="; //_requestParser.getAcceptCharset();
+	tmp[6]	= "HTTP_ACCEPT_ENCODING="; //_requestParser.getAcceptEncoding();
+	tmp[7]	= "HTTP_ACCEPT_LANGUAGE="; //_requestParser.getAcceptLanguage();
 	tmp[8]	= "HTTP_FORWARDED=";
-	tmp[9]	= "HTTP_HOST=";
+	tmp[9]	= "HTTP_HOST="; // ?
 	tmp[10] = "HTTP_PROXY_AUTHORIZATION=";
 	tmp[11] = "HTTP_USER_AGENT=";
-	tmp[12] = "PATH_INFO=";
-	tmp[13] = "PATH_TRANSLATED=";
-	tmp[14] = "QUERY_STRING=";
-	tmp[15] = "REMOTE_ADDR=";
-	tmp[17] = "REMOTE_HOST=";
-	tmp[18] = "REQUEST_METHOD=" + _requestParser.getMethod();
-	tmp[19] = "SCRIPT_NAME=" + _requestParser.getURI();
-	tmp[20] = "SERVER_NAME=" + _requestParser.getHost().first;
-	tmp[21] = "SERVER_PORT=" + std::to_string(_requestParser.getHost().second);
-	tmp[22] = "SERVER_PROTOCOL=HTTP/1.1";
-	tmp[23] = "SERVER_SOFTWARE=Webserv/1";
-	tmp[24] = "HTTP_COOKIE=";
+	tmp[12] = "PATH_INFO=" + _requestParser.getURI();
+	tmp[13] = "PATH_TRANSLATED="; //_requestParser.getPath();
+	tmp[14] = "QUERY_STRING="; // _requestParser.getQueryString();
+	tmp[15] = "REMOTE_ADDR=" + client_ip;
+	tmp[16] = "REMOTE_HOST=";
+	tmp[17] = "REQUEST_METHOD=" + _requestParser.getMethod();
+	tmp[18] = "SCRIPT_NAME=" + uri.substr(i, uri.length() - i);
+	tmp[19] = "SERVER_NAME=" + _requestParser.getHost().first;
+	tmp[20] = "SERVER_PORT=" + std::to_string(_requestParser.getHost().second);
+	tmp[21] = "SERVER_PROTOCOL=HTTP/1.1";
+	tmp[22] = "SERVER_SOFTWARE=Webserv/1";
+	tmp[23] = "HTTP_COOKIE=";
 
 	for (int i = 0; res[i] != NULL; i++)
 		res[i] = const_cast<char*>(tmp[i].c_str());

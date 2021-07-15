@@ -151,11 +151,6 @@ void Server::acceptConnection(pollfd lsocket, int i) {
 	if (fcntl(new_client, F_SETFL, O_NONBLOCK) < 0)
 		throw std::strerror(errno);
 
-	struct sockaddr_in addr = {};
-	socklen_t size = sizeof(addr);
-	getsockname(new_client, (struct sockaddr*)&addr, &size);
-	std::cout << inet_ntoa(addr.sin_addr) << std::endl;
-
 	std::cout   << paintString("================================", 0, BWHITE, 0) << std::endl;
 	std::cout	<< paintString("[NEW_CLIENT]", 1, GREEN, 0)
 				<< "\nConnected to " << lsocket.fd << " listening socket"

@@ -26,6 +26,8 @@
 # include <fstream>
 # include <sys/stat.h>
 # include <sys/wait.h>
+# include <arpa/inet.h>
+# include <netinet/in.h>
 # define MAX_HEADER_SIZE 8192
 # define EXECUTABLE_FILE 137
 # define FILE 666
@@ -48,7 +50,8 @@ class Executor {
 		Config					&_configParser;
 		RequestParser			&_requestParser;
 		size_t 					_header_size;
-		std::stringstream 		_body;
+		std::stringstream 		_body; // postBody
+		std::stringstream 		_responseBody;
 		int 					_post;
 		Location 				*_location;
 
