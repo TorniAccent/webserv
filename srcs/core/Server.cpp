@@ -30,7 +30,6 @@ Server::Server(char *config): _configParser(config), _listen() {
 	}
 }
 
-//erijgnerijnfvioernfiovhneriougfhn
 Server::~Server() {
 	delete []_fds;
 }
@@ -71,8 +70,8 @@ void Server::findEvent(int events) {
 		else if (_fds[i].revents == POLLNVAL)
 			throw "Файловый дескриптор не открыт";
 		else {
-//			if (_fds[i].revents != 0 && _fds[i].revents != 4)
-//				std::cout << _fds[i].revents << "[ALERT]"<< std::endl;
+			if (_fds[i].revents != 0 && _fds[i].revents != 4)
+				std::cout << _fds[i].revents << "[ALERT]"<< std::endl;
 		}
 	}
 }
@@ -98,7 +97,6 @@ void Server::recvRequest_sendResponse(pollfd &sock) {
 		sock.events = 0;
 		return ;
 	}
-//	std::cout << "bye" << std::endl;
 	executor.sendResponse(sock);
 }
 
@@ -136,6 +134,7 @@ void Server::acceptConnection(pollfd lsocket, int i) {
 	int					new_client;
 	socklen_t			len;
 	struct sockaddr		*base;
+	int					opt;
 	struct sockaddr_in	inet = {};
 	struct timeval timeout;
 	timeout.tv_sec = 5;
@@ -144,8 +143,10 @@ void Server::acceptConnection(pollfd lsocket, int i) {
 	lsocket.revents = 0;
 	base = reinterpret_cast<struct sockaddr *>(&inet);
 	len = sizeof(inet);
+	opt = 1;
 
 	new_client = accept(lsocket.fd, base, &len);
+	setsockopt(new_client, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)); // от залипания tcp-порта.
 	if (new_client == -1)
 		throw std::strerror(errno);
 	if (fcntl(new_client, F_SETFL, O_NONBLOCK) < 0)
@@ -167,7 +168,8 @@ void Server::acceptConnection(pollfd lsocket, int i) {
 void Server::addSocket(int sock, short event) {
 	int i;
 
-	_nfds = sock;
+//	_nfds = sock;
+	_nfds = _fds_size - 2;
 	for(i = 0; _fds[i].fd != END_OF_POLLFD_ARRAY; i++)
 	{
 		if (_fds[i].fd == VOID_POLLFD)
@@ -186,7 +188,9 @@ void Server::deleteSocket(pollfd &socket) {
 	std::cout << "\033[0;93mКлиент " <<  socket.fd  << " разорвал соединение!\033[0m" << std::endl;
 	std::cout << socket.events << std::endl;
 	std::cout << socket.revents << std::endl;
+	std::cout << _fds_size << std::endl;
 
+	shutdown(socket.fd, SHUT_RDWR);
 	close(socket.fd);
 	socket.fd = VOID_POLLFD;
 	socket.events = 0;

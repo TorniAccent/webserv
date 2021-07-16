@@ -216,28 +216,36 @@ bool Executor::executeCGI(std::string method) {
 		}
 	}
 	return (true);
-	std::cout << "EXECUTABLE" << std::endl;
 }
 
 char	**Executor::assembleEnv() {
 	char 						**res;
-	std::vector<std::string>	tmp(28, "");
+	std::vector<std::string>	tmp(23, "");
 	std::string					uri;
 	size_t						i;
 	struct sockaddr_in			addr = {};
 	std::string 				client_ip;
+	std::string 				host_ip;
+	std::string 				client_port;
+	std::string 				host_port;
 	socklen_t 					size;
 
-	res = new char* [25];
+	res = new char* [23];
+	res[22] = NULL;
+
 	size = sizeof(addr);
-	getpeername(_sock.fd, (struct sockaddr*)&addr, &size);
-	client_ip.append(inet_ntoa(addr.sin_addr));
-	client_ip.append(":" + std::to_string(addr.sin_port));
-//	setpeeropt(new_client, IPPROTO_IP, )
 	uri = _requestParser.getURI();
 	i = uri.find_last_of('/') + 1;
-	res[25] = NULL;
-	tmp[0]	= "AUTH_TYPE=";
+
+	getpeername(_sock.fd, (struct sockaddr*)&addr, &size);
+	client_ip.append(inet_ntoa(addr.sin_addr));
+	client_port.append(std::to_string(addr.sin_port));
+
+	getsockname(_sock.fd, (struct sockaddr*)&addr, &size);
+	host_ip.append(inet_ntoa(addr.sin_addr));
+	host_port.append(std::to_string(addr.sin_port));
+
+	tmp[0]	= "AUTH_TYPE=Basic";
 	tmp[1]	= "CONTENT_LENGTH=" + std::to_string(_requestParser.getContentLength());
 	tmp[2]	= "CONTENT_TYPE=" + _requestParser.getContentType();
 	tmp[3]	= "GATEWAY_INTERFACE=CGI/1.1";
@@ -245,22 +253,20 @@ char	**Executor::assembleEnv() {
 	tmp[5]	= "HTTP_ACCEPT_CHARSET="; //_requestParser.getAcceptCharset();
 	tmp[6]	= "HTTP_ACCEPT_ENCODING="; //_requestParser.getAcceptEncoding();
 	tmp[7]	= "HTTP_ACCEPT_LANGUAGE="; //_requestParser.getAcceptLanguage();
-	tmp[8]	= "HTTP_FORWARDED=";
-	tmp[9]	= "HTTP_HOST="; // ?
-	tmp[10] = "HTTP_PROXY_AUTHORIZATION=";
-	tmp[11] = "HTTP_USER_AGENT=";
-	tmp[12] = "PATH_INFO=" + _requestParser.getURI();
-	tmp[13] = "PATH_TRANSLATED="; //_requestParser.getPath();
-	tmp[14] = "QUERY_STRING="; // _requestParser.getQueryString();
-	tmp[15] = "REMOTE_ADDR=" + client_ip;
-	tmp[16] = "REMOTE_HOST=";
-	tmp[17] = "REQUEST_METHOD=" + _requestParser.getMethod();
-	tmp[18] = "SCRIPT_NAME=" + uri.substr(i, uri.length() - i);
-	tmp[19] = "SERVER_NAME=" + _requestParser.getHost().first;
-	tmp[20] = "SERVER_PORT=" + std::to_string(_requestParser.getHost().second);
-	tmp[21] = "SERVER_PROTOCOL=HTTP/1.1";
-	tmp[22] = "SERVER_SOFTWARE=Webserv/1";
-	tmp[23] = "HTTP_COOKIE=";
+	tmp[8]	= "HTTP_HOST=" + _requestParser.getHost().first; // ?
+	tmp[9] = "HTTP_USER_AGENT=";// _requestParser.getUserAgent();
+	tmp[10] = "PATH_INFO=" + _requestParser.getURI();
+	tmp[11] = "PATH_TRANSLATED="; //_requestParser.getPath();
+	tmp[12] = "QUERY_STRING="; // _requestParser.getQueryString();
+	tmp[13] = "REMOTE_ADDR=" + client_ip;
+	tmp[14] = "REMOTE_PORT=" + client_port;
+	tmp[15] = "REQUEST_METHOD=" + _requestParser.getMethod();
+	tmp[16] = "SCRIPT_NAME=" + uri.substr(i, uri.length() - i);
+	tmp[17] = "SERVER_NAME=" + host_ip;
+	tmp[18] = "SERVER_PORT=" + host_port;
+	tmp[19] = "SERVER_PROTOCOL=HTTP/1.1";
+	tmp[20] = "SERVER_SOFTWARE=Webserv/1";
+	tmp[21] = "HTTP_COOKIE=";
 
 	for (int i = 0; res[i] != NULL; i++)
 		res[i] = const_cast<char*>(tmp[i].c_str());
