@@ -25,7 +25,7 @@ public:
 	int 		getError() const;
 
 	std::pair<std::string, int> getHost() const;
-	size_t 		getContentLength() const;
+	size_t		getContentLength() const;
 	std::string getContentType() const;
 	std::string	getAccept() const;
 	std::string getAcceptCharset() const;
