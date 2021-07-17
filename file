@@ -7,9 +7,9 @@ server
 	limit 4096;
 	error_pages /error_pages/;
 
-	location /dir/index.php:
+	location /cgi-bin/:
 	{
-		root /root/;
+		root /www/http/;
 		methods GET POST DELETE;
 		autoindex off;
 		index max.php tar.php;

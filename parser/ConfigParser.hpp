@@ -14,6 +14,7 @@ std::string noComment(std::fstream &fin);
 bool noSemi(std::fstream &fin, std::string &tmp);
 size_t findField(std::string &str, const char *ref);
 std::vector<std::string> split(std::string &str);
+std::pair<std::string, std::string> colon_split(std::string const &line);
 
 class Config {
 public:
@@ -37,7 +38,7 @@ public:
 ////
 	std::pair<std::string, int> getAddress() const;
 	std::vector<std::string> getIndexes() const;
-	size_t getLimitBodySize() const; // ?
+	size_t getLimitBodySize() const;
 	std::string getErrorPages() const;
 		// std::vector<int> errorCode, std::string pagePass
 	std::vector<Location> getLocations() const;

@@ -40,3 +40,16 @@ std::vector<std::string> split(std::string &str) {
 	return ret;
 }
 
+std::pair<std::string, std::string> colon_split(std::string const &line) {
+	size_t tmp;
+
+	if ((tmp = line.find(':', 0)) == npos)
+		return std::pair<std::string, std::string>();
+	std::string first = line.substr(0, tmp);
+
+	if ((tmp = line.find_first_not_of(' ', tmp + 1)) == npos)
+		return std::pair<std::string, std::string>();
+	std::string second = line.substr(tmp, line.length() - tmp);
+
+	return std::pair<std::string, std::string>(first, second);
+}
