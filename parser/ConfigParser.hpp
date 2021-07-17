@@ -35,8 +35,10 @@ public:
 	class Location;
 ////
 	explicit Host(std::fstream &fin);
+	Host(Host const &copy);
 ////
 	std::pair<std::string, int> getAddress() const;
+	std::string getServerName() const;
 	std::vector<std::string> getIndexes() const;
 	size_t getLimitBodySize() const;
 	std::string getErrorPages() const;
@@ -61,6 +63,8 @@ public:
 					  std::vector<std::string> &indexes,
 					  size_t &limit,
 					  std::string &errorPages);
+	Location(Config::Host::Location const &copy,
+			 Config::Host const &host);
 ////
 	std::string getWeb() const;
 	std::string getRoot() const;
@@ -73,15 +77,13 @@ private:
 	std::string serverName;
 	size_t limit;
 	std::string errorPages;
+	std::vector<std::string> indexes;
 ////
 	std::string web;
 	std::string root;
 	std::vector<std::string> methods;
 	bool listing;
-	std::vector<std::string> indexes;
 	std::string cgiFile;
-//	std::string redirect;
-//	std::string extension;
 };
 
 #endif

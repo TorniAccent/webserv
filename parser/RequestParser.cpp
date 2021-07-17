@@ -78,13 +78,14 @@ void RequestParser::parseHeader(std::vector<std::string> &lines) {
 				colon_split(tmap->second);
 			_host = std::pair<std::string, int>
 				(tmpair.first, stoi(tmpair.second));
-		} else
-			_host = std::pair<std::string, int>();
+		}
 
 		if ((tmap = _headers.find("Content-Length")) != _headers.end()) {
 			_content_length = stoll(tmap->second);
-		} else
+		} else {
 			_error = 411;
+//			return;
+		}
 
 		if ((tmap = _headers.find("Content-Type")) != _headers.end()) {
 			_content_type = tmap->second;
@@ -92,24 +93,56 @@ void RequestParser::parseHeader(std::vector<std::string> &lines) {
 
 		if ((tmap = _headers.find("Accept")) != _headers.end()) {
 			_user_agent = tmap->second;
-		} else
+		} else {
 			_error = 406;
+//			return;
+		}
 
 		if ((tmap = _headers.find("Accept-Charset")) != _headers.end()) {
 			_charset = tmap->second;
-		} else
+		} else {
 			_error = 406;
+//			return;
+		}
 
 		if ((tmap = _headers.find("Accept-Encoding")) != _headers.end()) {
 			_encoding = tmap->second;
-		} else
+		} else {
 			_error = 406;
+//			return;
+		}
 
 		if ((tmap = _headers.find("Accept-Language")) != _headers.end()) {
 			_language = tmap->second;
-		} else
+		} else {
 			_error = 406;
+//			return;
+		}
 
+	}
+
+/// getPath
+	{
+//		_web = _uri.substr(0, _uri.rfind('/') + 1);
+//
+//		std::vector<Config::Host> host = _config.getHosts();
+//		std::vector<Config::Host>::iterator ith = host.begin();
+//		for (; ith != host.end() && ith->getAddress() != _host; ith++);
+//		if (ith != host.end()) {
+//			std::vector<Config::Host::Location> locations = ith->getLocations();
+//			std::vector<Config::Host::Location>::iterator itl = locations.begin();
+//			for (; itl != locations.end() && itl->getWeb() != _web; itl++);
+//			if (itl != locations.end()) {
+//				_web_pass = _uri.replace(0, _web.length(), itl->getRoot());
+//			}
+//	}
+			/// раскоментировать, если понадобится венуть путь до cgi
+//			else {
+//				for (; itl != locations.end() && itl->getCGI() != _web; itl++);
+//				if (itl != locations.end()) {
+//					_cgi_pass = itl->getRoot();
+//				}
+//			}
 	}
 }
 
@@ -163,12 +196,8 @@ std::string RequestParser::getUserAgent() const {
 	return (_user_agent);
 }
 
-//std::string		RequestParser::getBoundary() const {
-//	return (_boundary);
-//}
-
-////RequestParser&	RequestParser::operator=(const RequestParser &r) {
-////	return (*this);
-////}
+std::string RequestParser::getPath() const {
+	return (_web_pass);
+}
 
 #pragma clang diagnostic pop
