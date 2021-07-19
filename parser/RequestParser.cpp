@@ -123,19 +123,19 @@ void RequestParser::parseHeader(std::vector<std::string> &lines) {
 
 /// getPath
 	{
-//		_web = _uri.substr(0, _uri.rfind('/') + 1);
-//
-//		std::vector<Config::Host> host = _config.getHosts();
-//		std::vector<Config::Host>::iterator ith = host.begin();
-//		for (; ith != host.end() && ith->getAddress() != _host; ith++);
-//		if (ith != host.end()) {
-//			std::vector<Config::Host::Location> locations = ith->getLocations();
-//			std::vector<Config::Host::Location>::iterator itl = locations.begin();
-//			for (; itl != locations.end() && itl->getWeb() != _web; itl++);
-//			if (itl != locations.end()) {
-//				_web_pass = _uri.replace(0, _web.length(), itl->getRoot());
-//			}
-//	}
+		_web = _uri.substr(0, _uri.rfind('/') + 1);
+
+		std::vector<Config::Host> host = _config.getHosts();
+		std::vector<Config::Host>::iterator ith = host.begin();
+		for (; ith != host.end() && ith->getAddress() != _host; ith++);
+		if (ith != host.end()) {
+			std::vector<Config::Host::Location> locations = ith->getLocations();
+			std::vector<Config::Host::Location>::iterator itl = locations.begin();
+			for (; itl != locations.end() && itl->getWeb() != _web; itl++);
+			if (itl != locations.end()) {
+				_web_pass = _uri.replace(0, 1, itl->getRoot());
+			}
+	}
 			/// раскоментировать, если понадобится венуть путь до cgi
 //			else {
 //				for (; itl != locations.end() && itl->getCGI() != _web; itl++);

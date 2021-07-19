@@ -63,8 +63,6 @@ public:
 					  std::vector<std::string> &indexes,
 					  size_t &limit,
 					  std::string &errorPages);
-	Location(Config::Host::Location const &copy,
-			 Config::Host const &host);
 ////
 	std::string getWeb() const;
 	std::string getRoot() const;
@@ -84,6 +82,8 @@ private:
 	std::vector<std::string> methods;
 	bool listing;
 	std::string cgiFile;
+////
+//	Location(Config::Host::Location const &copy);
 };
 
 #endif

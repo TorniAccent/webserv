@@ -79,16 +79,16 @@ Config::Host::Location::Location(std::fstream &fin,
 	std::getline(fin, str);
 }
 
-Config::Host::Location::Location(Config::Host::Location const &copy,
-								 Config::Host const &host)
-: address(host.getAddress()),
-  serverName(host.getServerName()), indexes(host.getIndexes()),
-  limit(host.getLimitBodySize()), errorPages(host.getErrorPages()),
-
-  web(copy.getWeb()), root(copy.getRoot()), methods(copy.getMethods()),
-  listing(copy.autoindex()), cgiFile(copy.getCGI())
-{
-}
+//Config::Host::Location::Location(Config::Host::Location const &copy,
+//								 Config::Host const &host)
+//: address(host.getAddress()),
+//  serverName(host.getServerName()), indexes(host.getIndexes()),
+//  limit(host.getLimitBodySize()), errorPages(host.getErrorPages()),
+//
+//  web(copy.getWeb()), root(copy.getRoot()), methods(copy.getMethods()),
+//  listing(copy.autoindex()), cgiFile(copy.getCGI())
+//{
+//}
 
 std::string Config::Host::Location::getWeb() const {
 	return web;
