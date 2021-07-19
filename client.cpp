@@ -75,13 +75,22 @@ int main(int argc, char **argv)
 
 	std::string str;
 
-	str = "/www/taraa";
-
-	check = str.find_last_of('/') + 1;
-
-	std::cout << str.substr(check, str.length() - check) << std::endl;
+//	str = "/www/taraa";
+//
+//	check = str.find_last_of('/') + 1;
+//
+//	std::cout << str.substr(check, str.length() - check) << std::endl;
 	std::cout << str.length() - check << std::endl;
 
+	data = open("Makefile", O_RDONLY);
+
+	std::cout << data << std::endl;
+
+	data2 = open("Makefile", O_RDONLY);
+	std::cout << data2 << std::endl;
+	close(data);
+
+	std::cout << open("config", O_RDONLY);
 //	str = ;
 //	std::cout << argv[0] << std::endl;
 //	std::cout << argv[1] << std::endl;

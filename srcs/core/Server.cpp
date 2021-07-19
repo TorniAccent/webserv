@@ -15,7 +15,7 @@
 Server::Server(char *config): _configParser(config), _listen() {
 	std::vector<Config::Host> hosts;
 	_fds = new pollfd[1];
-	_fds[0].fd = END_OF_POLLFD_ARRAY;
+	_fds[0].fd = VOID_POLLFD;
 	_fds[0].events = 0;
 	_fds_size = 0;
 	_nfds = 0;
@@ -46,7 +46,7 @@ void Server::start() {
 	std::cout << paintString("[Waiting to events]", BOLD, BWHITE, 0) << std::endl;
 
 	while(true) {
-		events = poll(_fds, _nfds + 1, 0);
+		events = poll(_fds, _nfds, 0);
 		if (events == -1)
 			throw std::strerror(errno);
 		else if (events == 0)
@@ -58,7 +58,7 @@ void Server::start() {
 void Server::findEvent(int events) {
 	(void)events;
 
-	for (int i = 0; (_fds[i].fd != -2); i++) {
+	for (int i = 0; (i != _fds_size); i++) {
 		if (_fds[i].revents == NEW_CONNECTION)
 			acceptConnection(_fds[i], i);
 		else if (_fds[i].revents == REQUEST_RESPONSE)
@@ -71,7 +71,7 @@ void Server::findEvent(int events) {
 			throw "Файловый дескриптор не открыт";
 		else {
 			if (_fds[i].revents != 0 && _fds[i].revents != 4)
-				std::cout << _fds[i].revents << "[ALERT]"<< std::endl;
+				std::cout << _fds[i].revents << "[ALERT]"<< _fds[i].fd  << " " << _fds[i].events << std::endl;
 		}
 	}
 }
@@ -89,15 +89,21 @@ void Server::recvRequest_sendResponse(pollfd &sock) {
 	//executor.sendResponse(sock); //bool
 
 	isSuccess = executor.receiveRequest(sock);
-	executor.executeMethod();
-	if (!isSuccess) {
-		close(sock.fd);
-		sock.fd = VOID_POLLFD;
-		sock.revents = 0;
-		sock.events = 0;
-		return ;
-	}
+//	executor.executeMethod();
+//	if (!isSuccess) {
+//		close(sock.fd);
+//		sock.fd = VOID_POLLFD;
+//		sock.revents = 0;
+//		sock.events = 0;
+//		return ;
+//	}
 	executor.sendResponse(sock);
+//	std::cout << "Закрываем " << sock.fd << std::endl;
+	close(sock.fd);
+	sock.fd = VOID_POLLFD;
+	sock.revents = 0;
+	sock.events = 0;
+	return ;
 }
 
 void Server::startListen(Listen &listen) {
@@ -122,7 +128,7 @@ void Server::startListen(Listen &listen) {
 		base = reinterpret_cast<struct sockaddr *>(&inet);
 		if (bind(sock, base, sizeof(inet)) == -1)
 			throw std::strerror(errno);
-		if (::listen(sock, 5) == -1)
+		if (::listen(sock, 25) == -1)
 			throw std::strerror(errno);
 		addSocket(sock, NEW_CONNECTION);
 	}
@@ -134,11 +140,12 @@ void Server::acceptConnection(pollfd lsocket, int i) {
 	int					new_client;
 	socklen_t			len;
 	struct sockaddr		*base;
-	int					opt;
+	socklen_t			opt;
 	struct sockaddr_in	inet = {};
 	struct timeval timeout;
 	timeout.tv_sec = 5;
 	timeout.tv_usec = 0;
+	static int avvv;
 
 	lsocket.revents = 0;
 	base = reinterpret_cast<struct sockaddr *>(&inet);
@@ -146,31 +153,39 @@ void Server::acceptConnection(pollfd lsocket, int i) {
 	opt = 1;
 
 	new_client = accept(lsocket.fd, base, &len);
-	setsockopt(new_client, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)); // от залипания tcp-порта.
+
+//	std::cout << "\033[0;93mКлиент " <<  new_client  << " привет!\033[0m" << std::endl;
 	if (new_client == -1)
 		throw std::strerror(errno);
 	if (fcntl(new_client, F_SETFL, O_NONBLOCK) < 0)
 		throw std::strerror(errno);
-
-	std::cout   << paintString("================================", 0, BWHITE, 0) << std::endl;
-	std::cout	<< paintString("[NEW_CLIENT]", 1, GREEN, 0)
-				<< "\nConnected to " << lsocket.fd << " listening socket"
-				<< "\nfd		 = " << new_client << "(" << i << ")"
-				<< "\nport		 = " << inet.sin_port
-				<< "\nip		 = " << inet.sin_addr.s_addr
-				<< "\nIPv4		 = " << inet_ntoa(inet.sin_addr)
-				<< std::endl;
-	std::cout   << paintString("================================", 0, BWHITE, 0) << std::endl;
+//	std::cout << _fds_size << std::endl;
+//	setsockopt(new_client, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)); // от залипания tcp-порта.
+//	std::cout   << paintString("================================", 0, BWHITE, 0) << std::endl;
+//	std::cout	<< paintString("[NEW_CLIENT]", 1, GREEN, 0)
+//				<< "\nConnected to " << lsocket.fd << " listening socket"
+//				<< "\nfd		 = " << new_client << "(" << i << ")"
+//				<< "\nport		 = " << inet.sin_port
+//				<< "\nip		 = " << inet.sin_addr.s_addr
+//				<< "\nIPv4		 = " << inet_ntoa(inet.sin_addr)
+//				<< std::endl;
+//	std::cout   << paintString("================================", 0, BWHITE, 0) << std::endl;
 	addSocket(new_client, REQUEST_RESPONSE);
-
 }
 
 void Server::addSocket(int sock, short event) {
 	int i;
 
+//	if (_nfds < sock)
+//		_nfds = sock;
+	if (_fds_size == 0) {
+		expandPoll();
+		addSocket(sock, event);
+		return ;
+	}
+	_nfds = _fds_size;
 //	_nfds = sock;
-	_nfds = _fds_size - 2;
-	for(i = 0; _fds[i].fd != END_OF_POLLFD_ARRAY; i++)
+	for(i = 0; i != _fds_size; i++)
 	{
 		if (_fds[i].fd == VOID_POLLFD)
 		{
@@ -185,12 +200,11 @@ void Server::addSocket(int sock, short event) {
 }
 
 void Server::deleteSocket(pollfd &socket) {
-	std::cout << "\033[0;93mКлиент " <<  socket.fd  << " разорвал соединение!\033[0m" << std::endl;
-	std::cout << socket.events << std::endl;
-	std::cout << socket.revents << std::endl;
-	std::cout << _fds_size << std::endl;
+//	std::cout << "\033[0;93mКлиент " <<  socket.fd  << " разорвал соединение!\033[0m" << std::endl;
+//	std::cout << socket.events << std::endl;
+//	std::cout << socket.revents << std::endl;
+//	std::cout << _fds_size << std::endl;
 
-	shutdown(socket.fd, SHUT_RDWR);
 	close(socket.fd);
 	socket.fd = VOID_POLLFD;
 	socket.events = 0;
@@ -204,14 +218,14 @@ void Server::expandPoll() {
 
 	_fds_size += 100;
 	tmp = new pollfd[_fds_size];
-	tmp[_fds_size - 1].fd = END_OF_POLLFD_ARRAY;
-	for(i = 0; _fds[i].fd != END_OF_POLLFD_ARRAY; i++)
+//	tmp[_fds_size - 1].fd = END_OF_POLLFD_ARRAY;
+	for(i = 0; i != _fds_size - 100; i++)
 	{
 		tmp[i].fd = _fds[i].fd;
 		tmp[i].events = _fds[i].events;
 		tmp[i].revents = 0;
 	}
-	for(int a = i; tmp[a].fd != END_OF_POLLFD_ARRAY; a++)
+	for(int a = i; a != _fds_size; a++)
 	{
 		tmp[a].fd = VOID_POLLFD;
 		tmp[a].events = 0;
@@ -220,6 +234,7 @@ void Server::expandPoll() {
 	tmp2 = _fds;
 	_fds = tmp;
 	delete []tmp2;
+	tmp2 = NULL;
 }
 
 

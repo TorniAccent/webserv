@@ -44,7 +44,7 @@ class Executor {
 		typedef Config::Host::Location Location;
 
 		int						_error;
-		pollfd					_sock;
+		pollfd					*_sock;
 		size_t					_max_body_size;
 		char					*_data;
 		Config					&_configParser;

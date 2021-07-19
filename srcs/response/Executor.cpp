@@ -43,7 +43,7 @@ bool Executor::receiveRequest(pollfd &sock) {
 	std::string 				tmp;
 	std::string 				header;
 
-	_sock = sock;
+//	_sock = &sock;
 	while(true) {
 		size = recv(sock.fd, &buffer, BUFFER_SIZE - 1, 0);
 		if (size > 0) {
@@ -86,14 +86,14 @@ bool Executor::receiveRequest(pollfd &sock) {
 //		}
 	}
 
-	std::vector<std::string>::iterator it = splitted_header.begin();
-	while (it != splitted_header.end())
-	{
-		std::cout << *it << "|" << std::endl;
-		it++;
-	}
-//	std::cout << _requestParser.getBoundary() << "bbb" << std::endl;
-	std::cout << "---------------" <<std::endl;
+//	std::vector<std::string>::iterator it = splitted_header.begin();
+//	while (it != splitted_header.end())
+//	{
+//		std::cout << *it << "|" << std::endl;
+//		it++;
+//	}
+////	std::cout << _requestParser.getBoundary() << "bbb" << std::endl;
+//	std::cout << "---------------" <<std::endl;
 	return (true);
 }
 
@@ -237,11 +237,11 @@ char	**Executor::assembleEnv() {
 	uri = _requestParser.getURI();
 	i = uri.find_last_of('/') + 1;
 
-	getpeername(_sock.fd, (struct sockaddr*)&addr, &size);
+	getpeername(_sock->fd, (struct sockaddr*)&addr, &size);
 	client_ip.append(inet_ntoa(addr.sin_addr));
 	client_port.append(std::to_string(addr.sin_port));
 
-	getsockname(_sock.fd, (struct sockaddr*)&addr, &size);
+	getsockname(_sock->fd, (struct sockaddr*)&addr, &size);
 	host_ip.append(inet_ntoa(addr.sin_addr));
 	host_port.append(std::to_string(addr.sin_port));
 
@@ -303,7 +303,7 @@ int	Executor::readChunkedBody() {
 	size_t 		size;
 
 	while (1) {
-		size = recv(_sock.fd, &buffer, BUFFER_SIZE, 0);
+		size = recv(_sock->fd, &buffer, BUFFER_SIZE, 0);
 		if (size > 0)
 		{
 		}
@@ -324,7 +324,7 @@ int Executor::readFixBody(size_t content_length) {
 //	std::stringstream	body;
 
 	while (true) {
-		size = recv(_sock.fd, &buffer, BUFFER_SIZE, 0);
+		size = recv(_sock->fd, &buffer, BUFFER_SIZE, 0);
 		std::cout << size << std::endl;
 		if (size < 0)
 			std::cerr << std::strerror(errno) << "zzzz" << std::endl;
@@ -402,6 +402,7 @@ int Executor::selectLocation(std::string uri)
 				it3 = tmp2.begin();
 				while (it3 != tmp2.end())
 				{
+//					if ()
 					++it3;
 				}
 			}
@@ -540,6 +541,7 @@ bool Executor::sendResponse(pollfd &sock) {
 			 << content2.str();
 //			 << "0" << "\r\n\r\n";
 	response2 = response.str();
+	close(fd);
 	if (send(sock.fd, response2.c_str(), response2.length(), 0) < 0)
 		throw "over";
 	return (true);
