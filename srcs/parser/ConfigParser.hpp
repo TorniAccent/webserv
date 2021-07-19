@@ -14,6 +14,7 @@ std::string noComment(std::fstream &fin);
 bool noSemi(std::fstream &fin, std::string &tmp);
 size_t findField(std::string &str, const char *ref);
 std::vector<std::string> split(std::string &str);
+std::pair<std::string, std::string> colon_split(std::string const &line);
 
 class Config {
 public:
@@ -34,10 +35,12 @@ public:
 	class Location;
 ////
 	explicit Host(std::fstream &fin);
+	Host(Host const &copy);
 ////
 	std::pair<std::string, int> getAddress() const;
+	std::string getServerName() const;
 	std::vector<std::string> getIndexes() const;
-	size_t getLimitBodySize() const; // ?
+	size_t getLimitBodySize() const;
 	std::string getErrorPages() const;
 		// std::vector<int> errorCode, std::string pagePass
 	std::vector<Location> getLocations() const;
@@ -72,15 +75,15 @@ private:
 	std::string serverName;
 	size_t limit;
 	std::string errorPages;
+	std::vector<std::string> indexes;
 ////
 	std::string web;
 	std::string root;
 	std::vector<std::string> methods;
 	bool listing;
-	std::vector<std::string> indexes;
 	std::string cgiFile;
-//	std::string redirect;
-//	std::string extension;
+////
+//	Location(Config::Host::Location const &copy);
 };
 
 #endif

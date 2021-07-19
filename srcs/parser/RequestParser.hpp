@@ -15,36 +15,52 @@ using std::cout;
 
 class RequestParser {
 public:
-	explicit	RequestParser(Config &config);
-	bool 		parseHeader(std::vector<std::string> &header);
+	explicit RequestParser(Config const &config);
+
+	void 		parseHeader(std::vector<std::string> &header);
 
 	std::string getMethod() const;
 	std::string getURI() const;
+	std::string getQueryString() const;
 	int 		getError() const;
 
 	std::pair<std::string, int> getHost() const;
-	size_t 		getContentLength() const;
+	size_t		getContentLength() const;
 	std::string getContentType() const;
-
-//	std::string getBoundary(void) const;
+	std::string	getAccept() const;
+	std::string getAcceptCharset() const;
+	std::string getAcceptEncoding() const;
+	std::string getAcceptLanguage() const;
+	std::string getUserAgent() const;
+	std::string getPath() const;
 
 
 private:
-	int _error;
-	std::map<std::string, std::string> _headers;
+	int							_error;
+	std::map<std::string,
+			 std::string>		_headers;
 
 	Config						_config;
 
 	std::string					_method;
 	std::string 				_uri;
+	std::string 				_query_string;
 	std::pair<std::string, int>	_host;
+
 	size_t 						_content_length;
 	std::string					_content_type;
-
-	std::string 				_connection;
-	std::list<std::string>		_accept;
+	std::string					_accept;
 	std::string 				_charset;
-	std::string 				_boundary;
+	std::string 				_encoding;
+	std::string 				_language;
+	std::string 				_user_agent;
+
+	std::string 				_web;
+	std::string 				_web_pass;
+//	std::string 				_cgi_pass;
+
+//	std::string 				_connection;
+//	std::string 				_boundary;
 
 	RequestParser();
 	RequestParser(RequestParser const &copy);

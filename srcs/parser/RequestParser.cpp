@@ -6,62 +6,54 @@
 /// 414 - 'uri' is bigger then the size written in the config. 1st. v
 /// 400 - just any syntax error. v
 /// 405 - not implemented methods. 1st. v
+/// 406 - "Accept-Charset" field not found thru. v
 /// 411 - "Content-Length" field not found thru. v
 // 403 - * we are not allowed to go to certain directory
 // 415 - "Content-Type" (other -*) or "Content-Encoding" fields found. thru.
 // 413 - * useful load is too large
 /// ---
 
-// 404
-// 410
-// 429
+/// 404
+/// 410
+/// 429
 
 
-static std::pair<std::string, std::string> colon_split(std::string const &line) {
-	size_t tmp;
-
-	if ((tmp = line.find(':', 0)) == npos)
-		return std::pair<std::string, std::string>();
-	std::string first = line.substr(0, tmp);
-
-	if ((tmp = line.find_first_not_of(' ', tmp + 1)) == npos)
-		return std::pair<std::string, std::string>();
-	std::string second = line.substr(tmp, line.length() - tmp);
-
-	return std::pair<std::string, std::string>(first, second);
+RequestParser::RequestParser(Config const &config)
+	: _error(0), _config(config) {
 }
 
-RequestParser::RequestParser(Config &config) : _error(0), _config(config) {
+void RequestParser::parseHeader(std::vector<std::string> &lines) {
 /// parsing the 1st line
-	
-
-}
-
-
-bool 	RequestParser::parseHeader(std::vector<std::string> &lines)
-{
 	{
-		size_t tmp = 0;
+		size_t pos = 0;
 		std::string str;
 
-		if ((tmp = lines[0].find(' ', tmp)) == npos)
+		if ((pos = lines[0].find(' ', pos)) == npos)
 			_error = 400;
-		str = lines[0].substr(0, tmp);
+		str = lines[0].substr(0, pos);
 		if (str != "GET" && str != "POST" && str != "DELETE")
 			_error ? 0 : _error = 405;
 		_method = str;
 
-		if ((tmp = lines[0].find_first_not_of(' ', tmp)) == npos)
+		if ((pos = lines[0].find_first_not_of(' ', pos)) == npos)
 			_error = 400;
-		str = lines[0].substr(tmp, lines[0].find(' ', tmp) - tmp);
+		str = lines[0].substr(pos, lines[0].find(' ', pos) - pos);
 		if (str.length() > 4096)
 			_error ? 0 : _error = 414;
-		_uri = str;
+		{
+			size_t tmp;
+			if ((tmp = str.find('?', 0)) == npos)
+				_uri = str;
+			else {
+				_uri = str.substr(0, tmp);
+				_query_string = str.substr(tmp + 1, str.length());
+			}
+		}
 
-		tmp = lines[0].find(' ', tmp);
-		if ((tmp = lines[0].find_first_not_of(' ', tmp)) == npos)
+		pos = lines[0].find(' ', pos);
+		if ((pos = lines[0].find_first_not_of(' ', pos)) == npos)
 			_error = 400;
-		str = lines[0].substr(tmp, lines[0].length());
+		str = lines[0].substr(pos, lines[0].length());
 		if (str != "HTTP/1.1")
 			_error = 400;
 	}
@@ -86,53 +78,126 @@ bool 	RequestParser::parseHeader(std::vector<std::string> &lines)
 				colon_split(tmap->second);
 			_host = std::pair<std::string, int>
 				(tmpair.first, stoi(tmpair.second));
-		} else
-			_host = std::pair<std::string, int>();
+		}
 
 		if ((tmap = _headers.find("Content-Length")) != _headers.end()) {
 			_content_length = stoll(tmap->second);
-		} else
+		} else {
 			_error = 411;
+//			return;
+		}
 
 		if ((tmap = _headers.find("Content-Type")) != _headers.end()) {
 			_content_type = tmap->second;
-		} else
-			_content_type = std::string();
+		}
+
+		if ((tmap = _headers.find("Accept")) != _headers.end()) {
+			_user_agent = tmap->second;
+		} else {
+			_error = 406;
+//			return;
+		}
+
+		if ((tmap = _headers.find("Accept-Charset")) != _headers.end()) {
+			_charset = tmap->second;
+		} else {
+			_error = 406;
+//			return;
+		}
+
+		if ((tmap = _headers.find("Accept-Encoding")) != _headers.end()) {
+			_encoding = tmap->second;
+		} else {
+			_error = 406;
+//			return;
+		}
+
+		if ((tmap = _headers.find("Accept-Language")) != _headers.end()) {
+			_language = tmap->second;
+		} else {
+			_error = 406;
+//			return;
+		}
 
 	}
-	return (_error);
+
+/// getPath
+	{
+		_web = _uri.substr(0, _uri.rfind('/') + 1);
+
+		std::vector<Config::Host> host = _config.getHosts();
+		std::vector<Config::Host>::iterator ith = host.begin();
+		for (; ith != host.end() && ith->getAddress() != _host; ith++);
+		if (ith != host.end()) {
+			std::vector<Config::Host::Location> locations = ith->getLocations();
+			std::vector<Config::Host::Location>::iterator itl = locations.begin();
+			for (; itl != locations.end() && itl->getWeb() != _web; itl++);
+			if (itl != locations.end()) {
+				_web_pass = _uri.replace(0, 1, itl->getRoot());
+			}
+	}
+			/// раскоментировать, если понадобится венуть путь до cgi
+//			else {
+//				for (; itl != locations.end() && itl->getCGI() != _web; itl++);
+//				if (itl != locations.end()) {
+//					_cgi_pass = itl->getRoot();
+//				}
+//			}
+	}
 }
 
-std::string		RequestParser::getMethod() const {
+
+std::string	RequestParser::getMethod() const {
 	return (_method);
 }
 
-std::string 	RequestParser::getURI() const {
+std::string RequestParser::getURI() const {
 	return (_uri);
 }
 
-int 			RequestParser::getError() const {
+std::string RequestParser::getQueryString() const {
+	return (_query_string);
+}
+
+int RequestParser::getError() const {
 	return (_error);
 }
 
+////
 std::pair<std::string, int> RequestParser::getHost() const {
-	return (std::make_pair("MailRu", 2021));
+	return (_host);
 }
 
-size_t			RequestParser::getContentLength() const {
+size_t	RequestParser::getContentLength() const {
 	return (_content_length);
 }
 
-std::string 	RequestParser::getContentType() const {
+std::string RequestParser::getContentType() const {
 	return (_content_type);
 }
 
-//std::string		RequestParser::getBoundary() const {
-//	return (_boundary);
-//}
+std::string	RequestParser::getAccept() const {
+	return (_accept);
+}
 
-////RequestParser&	RequestParser::operator=(const RequestParser &r) {
-////	return (*this);
-////}
+std::string RequestParser::getAcceptCharset() const {
+	return (_charset);
+}
+
+std::string RequestParser::getAcceptEncoding() const {
+	return (_encoding);
+}
+
+std::string RequestParser::getAcceptLanguage() const {
+	return (_language);
+}
+
+std::string RequestParser::getUserAgent() const {
+	return (_user_agent);
+}
+
+std::string RequestParser::getPath() const {
+	return (_web_pass);
+}
 
 #pragma clang diagnostic pop

@@ -61,9 +61,17 @@ Config::Host::Host(std::fstream &fin) {
 	/// location
 	{
 		for (std::string tmp; std::getline(fin, tmp), tmp != "}"; ) {
-			locations.push_back(Location(fin, address, serverName, indexes, limit, errorPages));
+			locations.push_back(Location(fin, address, serverName, indexes,
+										 limit, errorPages));
 		}
 	}
+}
+
+Config::Host::Host(Config::Host const &copy)
+: address(copy.getAddress()), serverName(copy.getServerName()),
+  indexes(copy.getIndexes()), limit(copy.getLimitBodySize()),
+  errorPages(copy.getErrorPages()), locations(copy.getLocations())
+{
 }
 
 std::pair<std::string, int> Config::Host::getAddress() const {
@@ -84,4 +92,8 @@ std::string Config::Host::getErrorPages() const {
 
 std::vector<Config::Host::Location> Config::Host::getLocations() const {
 	return locations;
+}
+
+std::string Config::Host::getServerName() const {
+	return serverName;
 }
