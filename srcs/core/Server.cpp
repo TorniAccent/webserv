@@ -84,12 +84,13 @@ void Server::recvRequest_sendResponse(pollfd &sock) {
 
 	//RequestParser ResponseMaker >> Executor
 
-	//executor.receiveRequest(sock); //bool
-	//executor.executeMethod(); //bool
-	//executor.sendResponse(sock); //bool
+//	executor.receiveRequest(sock); //bool
+//	executor.executeMethod(); //bool
+//	executor.sendResponse(sock); //bool
 
 	isSuccess = executor.receiveRequest(sock);
-//	executor.executeMethod();
+	std::cout << requestParser.getAbsolutePath() << std::endl;
+	executor.executeMethod();
 //	if (!isSuccess) {
 //		close(sock.fd);
 //		sock.fd = VOID_POLLFD;
@@ -98,12 +99,12 @@ void Server::recvRequest_sendResponse(pollfd &sock) {
 //		return ;
 //	}
 	executor.sendResponse(sock);
-//	std::cout << "Закрываем " << sock.fd << std::endl;
-	close(sock.fd);
-	sock.fd = VOID_POLLFD;
-	sock.revents = 0;
-	sock.events = 0;
-	return ;
+//	if (!requestParser.getConnection()) {
+//		close(sock.fd);
+//		sock.fd = VOID_POLLFD;
+//		sock.revents = 0;
+//		sock.events = 0;
+//	}
 }
 
 void Server::startListen(Listen &listen) {

@@ -28,6 +28,7 @@
 # include <sys/wait.h>
 # include <arpa/inet.h>
 # include <netinet/in.h>
+# include <stdlib.h>
 # define MAX_HEADER_SIZE 8192
 # define EXECUTABLE_FILE 137
 # define FILE 666

@@ -1,6 +1,7 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "modernize-use-auto"
 #include "RequestParser.hpp"
+#include <map>
 
 // 503 - "Retry-After" field found. thru.
 /// 414 - 'uri' is bigger then the size written in the config. 1st. v
@@ -19,8 +20,12 @@
 
 
 RequestParser::RequestParser(Config const &config)
-	: _error(0), _config(config) {
+	: _error(0), _connection(false), _config(config) {
 }
+
+//void RequestParser::setHost(std::string host) {
+//	_host = host;
+//}
 
 void RequestParser::parseHeader(std::vector<std::string> &lines) {
 /// parsing the 1st line
@@ -119,6 +124,15 @@ void RequestParser::parseHeader(std::vector<std::string> &lines) {
 //			return;
 		}
 
+		if ((tmap = _headers.find("Connection")) != _headers.end()) {
+			_connection = tmap->second == "keep-alive";
+		} else {
+			_error = 400;
+//			return;
+		}
+
+
+
 	}
 
 /// getPath
@@ -127,15 +141,32 @@ void RequestParser::parseHeader(std::vector<std::string> &lines) {
 
 		std::vector<Config::Host> host = _config.getHosts();
 		std::vector<Config::Host>::iterator ith = host.begin();
-		for (; ith != host.end() && ith->getAddress() != _host; ith++);
+		for (; ith != host.end(); ith++) {
+//			std::cout << ith->getAddress().first << ith->getAddress().second << "\n"
+//			<< _host.first << _host.second << "\n--=-=--\n";
+			if (ith->getAddress().second == _host.second &&
+				(ith->getAddress().first == _host.first ||
+				 "localhost" == _host.first))
+				break;
+		}
 		if (ith != host.end()) {
 			std::vector<Config::Host::Location> locations = ith->getLocations();
 			std::vector<Config::Host::Location>::iterator itl = locations.begin();
 			for (; itl != locations.end() && itl->getWeb() != _web; itl++);
 			if (itl != locations.end()) {
-				_web_pass = _uri.replace(0, 1, itl->getRoot());
+				std::string uri = _uri;
+				_relative_path = uri.replace(0, 1, itl->getRoot());
+				_relative_path = _relative_path.replace(0, 1, "");
+				char *tmp;
+				if ((tmp = realpath(_relative_path.c_str(), NULL)) == NULL)
+					throw const_cast<const char*>(std::strerror(errno));
+				_absolute_path = tmp;
+				free(tmp);
+//				char tmp[1000];
+//				realpath(_relative_path.c_str(), tmp);
+//				_absolute_path = tmp;
 			}
-	}
+		}
 			/// раскоментировать, если понадобится венуть путь до cgi
 //			else {
 //				for (; itl != locations.end() && itl->getCGI() != _web; itl++);
@@ -196,8 +227,19 @@ std::string RequestParser::getUserAgent() const {
 	return (_user_agent);
 }
 
-std::string RequestParser::getPath() const {
-	return (_web_pass);
+bool RequestParser::getConnection() const {
+	return (_connection);
 }
+
+std::string RequestParser::getRelativePath() const {
+	return (_relative_path);
+}
+
+std::string RequestParser::getAbsolutePath() const {
+	return (_absolute_path);
+}
+
+
+
 
 #pragma clang diagnostic pop

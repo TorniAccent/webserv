@@ -6,7 +6,7 @@
 /*   By: swquinc <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/26 16:28:00 by swquinc           #+#    #+#             */
-/*   Updated: 2021/06/26 16:28:01 by swquinc          ###   ########.fr       */
+/*   Updated: 2021/07/20 00:04:16 by swquinc          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ bool Executor::receiveRequest(pollfd &sock) {
 				else {
 					header.append(tmp.substr(0, res));
 					splitHeader(splitted_header, header);
-					_error = _requestParser.parseHeader(splitted_header);
+					_requestParser.parseHeader(splitted_header);
 					tmp.erase(0, res + 4);
 					_body.write(tmp.c_str(), tmp.length());
 					_max_body_size = tmp.length();
@@ -86,31 +86,26 @@ bool Executor::receiveRequest(pollfd &sock) {
 //		}
 	}
 
-//	std::vector<std::string>::iterator it = splitted_header.begin();
-//	while (it != splitted_header.end())
-//	{
-//		std::cout << *it << "|" << std::endl;
-//		it++;
-//	}
-////	std::cout << _requestParser.getBoundary() << "bbb" << std::endl;
-//	std::cout << "---------------" <<std::endl;
+	std::vector<std::string>::iterator it = splitted_header.begin();
+	while (it != splitted_header.end())
+	{
+		std::cout << *it << "|" << std::endl;
+		it++;
+	}
+//	std::cout << _requestParser.getBoundary() << "bbb" << std::endl;
+	std::cout << "---------------" <<std::endl;
 	return (true);
 }
 
 bool Executor::executeMethod() {
 	bool 		res;
 	std::string method;
-	int			check;
 	int 		objType;
 
 	res = false;
 	method = _requestParser.getMethod();
-	check = selectLocation(_requestParser.getURI());
-	if (!check)
-		objType = getResourceType("config");
-	else
-		return (false);
-
+//	check = selectLocation(_requestParser.getURI());
+	objType = getResourceType("config");
 	if (!objType)
 		std::cout << "Magic object" << std::endl;
 	else if (objType == EXECUTABLE_FILE)
@@ -119,7 +114,6 @@ bool Executor::executeMethod() {
 		std::cout << "FILE" << std::endl;
 	else
 		std::cout << "DIRECTORY" << std::endl;
-
 	if (method == "GET")
 		res = methodGet(objType);
 	else if (method == "POST")
@@ -130,7 +124,14 @@ bool Executor::executeMethod() {
 }
 
 bool Executor::methodDelete(int obj) {
-	return (false);
+	if (remove(_requestParser.getAbsolutePath().c_str()) != 0){
+		if (errno == ENOENT)
+			_error = 404;
+		else
+			_error = 403;
+		return (false);
+	}
+	return(true);
 }
 
 bool Executor::methodPost(int obj) {
@@ -156,9 +157,27 @@ bool Executor::methodPost(int obj) {
 }
 
 bool Executor::methodGet(int obj) { // формировать body
-	if (_requestParser.getError() != 0) //FIXME отравлять ошибку клиенту
+	int                 fd;
+	int 				s;
+	char                c;
+
+	fd = open(_requestParser.getAbsolutePath().c_str(), O_RDONLY); //FIXME установить код ошибки
+	if (fd == -1){
+		if (errno == ENOENT)
+			_error = 404;
+		else
+			_error = 403;
 		return (false);
-//	_configParser.get
+	}
+	while ((s = read(fd, &c, 1)) > 0) {
+		_responseBody.write(&c, 1);
+	}
+	if (s == -1){
+		_error = 500;
+		close(fd);
+		return (false);
+	}
+	close(fd);
 	return (true);
 }
 
@@ -189,11 +208,16 @@ bool Executor::executeCGI(std::string method) {
 				delete object_to_execute;
 				exit(510);
 			}
+			interpreter = _requestParser.getAbsolutePath();
 		}
 		else
-			object_to_execute[0] = const_cast<char*>(interpreter.c_str());
+			object_to_execute[0] = const_cast<char*>(_requestParser.getAbsolutePath().c_str());
 		env = assembleEnv();
-		if (execve(interpreter.c_str(), object_to_execute, NULL) == -1)
+		if (method == "POST")
+		{
+
+		}
+		if (execve(interpreter.c_str(), object_to_execute, env) == -1)
 		{
 			if (errno == ENOENT)
 				exit(501);
@@ -249,15 +273,15 @@ char	**Executor::assembleEnv() {
 	tmp[1]	= "CONTENT_LENGTH=" + std::to_string(_requestParser.getContentLength());
 	tmp[2]	= "CONTENT_TYPE=" + _requestParser.getContentType();
 	tmp[3]	= "GATEWAY_INTERFACE=CGI/1.1";
-	tmp[4]	= "HTTP_ACCEPT="; //_requestParser.getAccept();
-	tmp[5]	= "HTTP_ACCEPT_CHARSET="; //_requestParser.getAcceptCharset();
-	tmp[6]	= "HTTP_ACCEPT_ENCODING="; //_requestParser.getAcceptEncoding();
-	tmp[7]	= "HTTP_ACCEPT_LANGUAGE="; //_requestParser.getAcceptLanguage();
+	tmp[4]	= "HTTP_ACCEPT=" + _requestParser.getAccept();
+	tmp[5]	= "HTTP_ACCEPT_CHARSET=" + _requestParser.getAcceptCharset();
+	tmp[6]	= "HTTP_ACCEPT_ENCODING=" + _requestParser.getAcceptEncoding();
+	tmp[7]	= "HTTP_ACCEPT_LANGUAGE=" + _requestParser.getAcceptLanguage();
 	tmp[8]	= "HTTP_HOST=" + _requestParser.getHost().first; // ?
-	tmp[9] = "HTTP_USER_AGENT=";// _requestParser.getUserAgent();
+	tmp[9] = "HTTP_USER_AGENT=" + _requestParser.getUserAgent();
 	tmp[10] = "PATH_INFO=" + _requestParser.getURI();
-	tmp[11] = "PATH_TRANSLATED="; //_requestParser.getPath();
-	tmp[12] = "QUERY_STRING="; // _requestParser.getQueryString();
+	tmp[11] = "PATH_TRANSLATED=" + _requestParser.getRelativePath();
+	tmp[12] = "QUERY_STRING=" + _requestParser.getQueryString();
 	tmp[13] = "REMOTE_ADDR=" + client_ip;
 	tmp[14] = "REMOTE_PORT=" + client_port;
 	tmp[15] = "REQUEST_METHOD=" + _requestParser.getMethod();
@@ -377,43 +401,43 @@ int Executor::writeToFile(std::string filename, char *data, size_t size) {
 	return (0);
 }
 
-int Executor::selectLocation(std::string uri)
-{
-	Location *location;
-	std::vector<Config::Host> host = _configParser.getHosts();
-	//Location location(_configParser.getHosts().front().getLocations().front());
-	std::pair<std::string, int> requestedHost = _requestParser.getHost();
-	std::vector<Config::Host>::iterator it;
-	std::vector<std::string>::iterator it2;
-	std::vector<Location>::iterator it3;
-	std::vector<Location> tmp2;
-	std::vector<std::string> tmp;
-
-	it = host.begin();
-	while (it != host.end())			//перебираем сервера из конфига
-	{
+//int Executor::selectLocation(std::string uri)
+//{
+//	Location *location;
+//	std::vector<Config::Host> host = _configParser.getHosts();
+//	//Location location(_configParser.getHosts().front().getLocations().front());
+//	std::pair<std::string, int> requestedHost = _requestParser.getHost();
+//	std::vector<Config::Host>::iterator it;
+//	std::vector<std::string>::iterator it2;
+//	std::vector<Location>::iterator it3;
+//	std::vector<Location> tmp2;
+//	std::vector<std::string> tmp;
+//
+//	it = host.begin();
+//	while (it != host.end())			//перебираем сервера из конфига
+//	{
 //		tmp = it->getServerNames();
-		it2 = tmp.begin();
-		while (it2 != tmp.end())		//перебираем server_names серверов из конфига
-		{
-			if (requestedHost.first == *it2){
-				std::cerr << "CATCH U!" << std::endl;	//перебираем locations найденного сервера
-				tmp2 = it->getLocations();
-				it3 = tmp2.begin();
-				while (it3 != tmp2.end())
-				{
+//		it2 = tmp.begin();
+//		while (it2 != tmp.end())		//перебираем server_names серверов из конфига
+//		{
+//			if (requestedHost.first == *it2){
+//				std::cerr << "CATCH U!" << std::endl;	//перебираем locations найденного сервера
+//				tmp2 = it->getLocations();
+//				it3 = tmp2.begin();
+//				while (it3 != tmp2.end())
+//				{
 //					if ()
-					++it3;
-				}
-			}
-			std::cout << *it2 << std::endl;
-			++it2;
-		}
-		++it;
-	}
-	_location = location;
-	return (0);
-}
+//					++it3;
+//				}
+//			}
+//			std::cout << *it2 << std::endl;
+//			++it2;
+//		}
+//		++it;
+//	}
+//	_location = location;
+//	return (0);
+//}
 
 int Executor::getError() {
 	return (_error);
@@ -512,13 +536,13 @@ bool Executor::sendResponse(pollfd &sock) {
 	int s;
 
 	_data = "HELLO";
-	fd = open("root/index.html", O_RDONLY);
+//	fd = open("root/index.html", O_RDONLY);
 //	fcntl(fd, F_SETFL, O_NONBLOCK);
 //	if (!fin.is_open())
 //		throw "file";
-	while ((s = read(fd, &c, 1)) > 0) {
-		content2.write(&c, 1);
-	}
+//	while ((s = read(fd, &c, 1)) > 0) {
+//		content2.write(&c, 1);
+//	}
 //	content << "<title>Test C++ HTTP Server</title>\n"
 //			<< "<h1>Test Server!</h1>\n"
 //			<< "<p>This is body of the test page...</p>\n"
@@ -534,14 +558,14 @@ bool Executor::sendResponse(pollfd &sock) {
 			 << "Version: HTTP/1.1\r\n"
 			 << "Content-Type: text/html\r\n"
 			 << "Connection: keep-alive\r\n"
-			 << "Content-Length: " << content2.str().length()
+			 << "Content-Length: " << _responseBody.str().length()
 			 //			 << "Transfer-Encoding: chunked"
 			 << "\r\n\r\n"
 			 //			 << "5059\r\n"
-			 << content2.str();
+			 <<_responseBody.str();
 //			 << "0" << "\r\n\r\n";
 	response2 = response.str();
-	close(fd);
+//	close(fd);
 	if (send(sock.fd, response2.c_str(), response2.length(), 0) < 0)
 		throw "over";
 	return (true);

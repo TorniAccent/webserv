@@ -7,6 +7,7 @@
 # include <map>
 # include <cstring>
 # include <list>
+# include <cstdlib>
 # include "../parser/ConfigParser.hpp"
 
 using std::cout;
@@ -32,7 +33,9 @@ public:
 	std::string getAcceptEncoding() const;
 	std::string getAcceptLanguage() const;
 	std::string getUserAgent() const;
-	std::string getPath() const;
+	std::string getRelativePath() const;
+	std::string getAbsolutePath() const;
+	bool getConnection() const;
 
 
 private:
@@ -54,9 +57,11 @@ private:
 	std::string 				_encoding;
 	std::string 				_language;
 	std::string 				_user_agent;
+	bool						_connection;
 
 	std::string 				_web;
-	std::string 				_web_pass;
+	std::string 				_relative_path;;
+	std::string 				_absolute_path;
 //	std::string 				_cgi_pass;
 
 //	std::string 				_connection;

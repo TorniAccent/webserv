@@ -16,7 +16,7 @@ server
 		cgi /root/phpmyadmin/;
 	}
 
-	location /dir/index.php:
+	location /:
 	{
 		root /root/;
 		methods GET POST DELETE;
@@ -35,7 +35,7 @@ server
 	limit 4096;
 	error_pages /error_pages/;
 
-	location /dir/index.php:
+	location /dir/:
 	{
 		root /root/;
 		methods GET POST DELETE;
