@@ -64,6 +64,12 @@ bool Executor::receiveRequest(pollfd &sock) {
 					header.append(tmp.substr(0, res));
 					splitHeader(splitted_header, header);
 					_requestParser.parseHeader(splitted_header);
+					if (_requestParser.getError() != 200)
+					{
+						_error = _requestParser.getError();
+						std::cout << _error << std::endl;
+//						return (false);
+					}
 					tmp.erase(0, res + 4);
 					_body.write(tmp.c_str(), tmp.length());
 					_max_body_size = tmp.length();
@@ -277,7 +283,7 @@ char	**Executor::assembleEnv() {
 	tmp[5]	= "HTTP_ACCEPT_CHARSET=" + _requestParser.getAcceptCharset();
 	tmp[6]	= "HTTP_ACCEPT_ENCODING=" + _requestParser.getAcceptEncoding();
 	tmp[7]	= "HTTP_ACCEPT_LANGUAGE=" + _requestParser.getAcceptLanguage();
-	tmp[8]	= "HTTP_HOST=" + _requestParser.getHost().first; // ?
+	tmp[8]	= "HTTP_HOST=" + _requestParser.getServerName(); // ?
 	tmp[9] = "HTTP_USER_AGENT=" + _requestParser.getUserAgent();
 	tmp[10] = "PATH_INFO=" + _requestParser.getURI();
 	tmp[11] = "PATH_TRANSLATED=" + _requestParser.getRelativePath();

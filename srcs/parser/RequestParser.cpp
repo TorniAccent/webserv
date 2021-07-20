@@ -20,12 +20,12 @@
 
 
 RequestParser::RequestParser(Config const &config)
-	: _error(0), _connection(false), _config(config) {
+	: _error(200), _connection(false), _config(config) {
 }
 
-//void RequestParser::setHost(std::string host) {
-//	_host = host;
-//}
+void RequestParser::setHost(std::string host) {
+	_host.first = host;
+}
 
 void RequestParser::parseHeader(std::vector<std::string> &lines) {
 /// parsing the 1st line
@@ -34,14 +34,14 @@ void RequestParser::parseHeader(std::vector<std::string> &lines) {
 		std::string str;
 
 		if ((pos = lines[0].find(' ', pos)) == npos)
-			_error = 400;
+			_error = 4005;
 		str = lines[0].substr(0, pos);
 		if (str != "GET" && str != "POST" && str != "DELETE")
 			_error ? 0 : _error = 405;
 		_method = str;
 
 		if ((pos = lines[0].find_first_not_of(' ', pos)) == npos)
-			_error = 400;
+			_error = 4004;
 		str = lines[0].substr(pos, lines[0].find(' ', pos) - pos);
 		if (str.length() > 4096)
 			_error ? 0 : _error = 414;
@@ -57,10 +57,10 @@ void RequestParser::parseHeader(std::vector<std::string> &lines) {
 
 		pos = lines[0].find(' ', pos);
 		if ((pos = lines[0].find_first_not_of(' ', pos)) == npos)
-			_error = 400;
+			_error = 4003;
 		str = lines[0].substr(pos, lines[0].length());
 		if (str != "HTTP/1.1")
-			_error = 400;
+			_error = 4002;
 	}
 
 /// the map filling
@@ -69,7 +69,7 @@ void RequestParser::parseHeader(std::vector<std::string> &lines) {
 			 !_error && it != lines.end(); it++) {
 			std::pair<std::string, std::string> tmp;
 			if ((tmp = colon_split(*it)) == std::pair<std::string, std::string>())
-				_error = 400;
+				_error = 4001;
 			_headers.insert(tmp);
 		}
 	}
@@ -81,14 +81,14 @@ void RequestParser::parseHeader(std::vector<std::string> &lines) {
 		if ((tmap = _headers.find("Host")) != _headers.end()) {
 			std::pair<std::string, std::string> tmpair =
 				colon_split(tmap->second);
-			_host = std::pair<std::string, int>
-				(tmpair.first, stoi(tmpair.second));
+			_host.second = stoi(tmpair.second);
+			_server_name = tmpair.first;
 		}
 
 		if ((tmap = _headers.find("Content-Length")) != _headers.end()) {
 			_content_length = stoll(tmap->second);
 		} else {
-			_error = 411;
+//			_error = 411;
 //			return;
 		}
 
@@ -99,35 +99,35 @@ void RequestParser::parseHeader(std::vector<std::string> &lines) {
 		if ((tmap = _headers.find("Accept")) != _headers.end()) {
 			_user_agent = tmap->second;
 		} else {
-			_error = 406;
+//			_error = 406;
 //			return;
 		}
 
 		if ((tmap = _headers.find("Accept-Charset")) != _headers.end()) {
 			_charset = tmap->second;
 		} else {
-			_error = 406;
+//			_error = 406;
 //			return;
 		}
 
 		if ((tmap = _headers.find("Accept-Encoding")) != _headers.end()) {
 			_encoding = tmap->second;
 		} else {
-			_error = 406;
+//			_error = 406;
 //			return;
 		}
 
 		if ((tmap = _headers.find("Accept-Language")) != _headers.end()) {
 			_language = tmap->second;
 		} else {
-			_error = 406;
+//			_error = 406;
 //			return;
 		}
 
 		if ((tmap = _headers.find("Connection")) != _headers.end()) {
 			_connection = tmap->second == "keep-alive";
 		} else {
-			_error = 400;
+//			_error = 400;
 //			return;
 		}
 
@@ -142,11 +142,12 @@ void RequestParser::parseHeader(std::vector<std::string> &lines) {
 		std::vector<Config::Host> host = _config.getHosts();
 		std::vector<Config::Host>::iterator ith = host.begin();
 		for (; ith != host.end(); ith++) {
-//			std::cout << ith->getAddress().first << ith->getAddress().second << "\n"
-//			<< _host.first << _host.second << "\n--=-=--\n";
-			if (ith->getAddress().second == _host.second &&
-				(ith->getAddress().first == _host.first ||
-				 "localhost" == _host.first))
+			std::cout << ith->getAddress().first << ith->getAddress().second << "\n"
+			<< _host.first << _host.second << "\n--=-=--\n";
+//			if (ith->getAddress().second == _host.second &&
+//				(ith->getAddress().first == _host.first ||
+//				 "localhost" == _host.first))
+			if (ith->getAddress() == _host && ith->getServerName() == _server_name)
 				break;
 		}
 		if (ith != host.end()) {
@@ -159,12 +160,19 @@ void RequestParser::parseHeader(std::vector<std::string> &lines) {
 				_relative_path = _relative_path.replace(0, 1, "");
 				char *tmp;
 				if ((tmp = realpath(_relative_path.c_str(), NULL)) == NULL)
-					throw const_cast<const char*>(std::strerror(errno));
+//					throw const_cast<const char*>(std::strerror(errno));
+					_error = 404;
 				_absolute_path = tmp;
-				free(tmp);
+				if (!tmp)
+					free(tmp);
 //				char tmp[1000];
 //				realpath(_relative_path.c_str(), tmp);
 //				_absolute_path = tmp;
+			} else {
+				std::string uri = _uri;
+				_relative_path = uri.replace(0, 1, "/root/");
+				_relative_path = _relative_path.replace(0, 1, "");
+
 			}
 		}
 			/// раскоментировать, если понадобится венуть путь до cgi
@@ -195,8 +203,16 @@ int RequestParser::getError() const {
 }
 
 ////
-std::pair<std::string, int> RequestParser::getHost() const {
-	return (_host);
+std::string RequestParser::getHost() const {
+	std::stringstream ss;
+	ss << _host.second;
+	std::string tmp;
+	ss >> tmp;
+	return (_host.first + ":" + tmp);
+}
+
+std::string RequestParser::getServerName() const {
+	return (_server_name);
 }
 
 size_t	RequestParser::getContentLength() const {
@@ -238,7 +254,6 @@ std::string RequestParser::getRelativePath() const {
 std::string RequestParser::getAbsolutePath() const {
 	return (_absolute_path);
 }
-
 
 
 

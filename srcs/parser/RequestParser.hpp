@@ -8,6 +8,7 @@
 # include <cstring>
 # include <list>
 # include <cstdlib>
+# include <sstream>
 # include "../parser/ConfigParser.hpp"
 
 using std::cout;
@@ -18,6 +19,8 @@ class RequestParser {
 public:
 	explicit RequestParser(Config const &config);
 
+	void		setHost(std::string host);
+
 	void 		parseHeader(std::vector<std::string> &header);
 
 	std::string getMethod() const;
@@ -25,7 +28,8 @@ public:
 	std::string getQueryString() const;
 	int 		getError() const;
 
-	std::pair<std::string, int> getHost() const;
+	std::string getHost() const;
+	std::string getServerName() const;
 	size_t		getContentLength() const;
 	std::string getContentType() const;
 	std::string	getAccept() const;
@@ -49,6 +53,7 @@ private:
 	std::string 				_uri;
 	std::string 				_query_string;
 	std::pair<std::string, int>	_host;
+	std::string					_server_name;
 
 	size_t 						_content_length;
 	std::string					_content_type;

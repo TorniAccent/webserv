@@ -81,16 +81,18 @@ void Server::recvRequest_sendResponse(pollfd &sock) {
 	Executor		executor(_configParser, requestParser);
 	std::string 	response;
 	bool 			isSuccess;
+	socklen_t 					size;
+	struct sockaddr_in			addr = {};
 
 	//RequestParser ResponseMaker >> Executor
-
+	getsockname(sock.fd, (struct sockaddr*)&addr, &size);
+	requestParser.setHost(inet_ntoa(addr.sin_addr));
 //	executor.receiveRequest(sock); //bool
 //	executor.executeMethod(); //bool
 //	executor.sendResponse(sock); //bool
 
 	isSuccess = executor.receiveRequest(sock);
-
-//	std::cout << requestParser.getRelativePath() << std::endl;
+	std::cout << requestParser.getAbsolutePath() << std::endl;
 	executor.executeMethod();
 //	if (!isSuccess) {
 //		close(sock.fd);
@@ -100,12 +102,12 @@ void Server::recvRequest_sendResponse(pollfd &sock) {
 //		return ;
 //	}
 	executor.sendResponse(sock);
-//	if (!requestParser.getConnection()) {
-//		close(sock.fd);
-//		sock.fd = VOID_POLLFD;
-//		sock.revents = 0;
-//		sock.events = 0;
-//	}
+	if (!requestParser.getConnection()) {
+		close(sock.fd);
+		sock.fd = VOID_POLLFD;
+		sock.revents = 0;
+		sock.events = 0;
+	}
 }
 
 void Server::startListen(Listen &listen) {
