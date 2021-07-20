@@ -89,7 +89,8 @@ void Server::recvRequest_sendResponse(pollfd &sock) {
 //	executor.sendResponse(sock); //bool
 
 	isSuccess = executor.receiveRequest(sock);
-	std::cout << requestParser.getAbsolutePath() << std::endl;
+
+//	std::cout << requestParser.getRelativePath() << std::endl;
 	executor.executeMethod();
 //	if (!isSuccess) {
 //		close(sock.fd);

@@ -562,7 +562,7 @@ bool Executor::sendResponse(pollfd &sock) {
 			 //			 << "Transfer-Encoding: chunked"
 			 << "\r\n\r\n"
 			 //			 << "5059\r\n"
-			 <<_responseBody.str();
+			 <<_responseBody.str() << "\r\n";
 //			 << "0" << "\r\n\r\n";
 	response2 = response.str();
 //	close(fd);
